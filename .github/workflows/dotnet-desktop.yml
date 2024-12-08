@@ -33,8 +33,7 @@ jobs:
 
     # Debug - List Packages
     - name: List packages
-      run: ls -la ./nupkgs
-
+      run: dir .\nupkgs
     # Publish the NuGet package
     - name: Publish to NuGet
       env:

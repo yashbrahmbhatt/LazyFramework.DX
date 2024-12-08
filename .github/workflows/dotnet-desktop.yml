@@ -37,13 +37,13 @@ jobs:
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         echo "Package path is $PACKAGE_PATH"
 
-        # Extract version from .nupkg metadata
-    - name: Extract version from .nupkg file
+    # Extract version from .nupkg filename
+    - name: Extract version from .nupkg filename
       id: extract_version
       shell: bash
       run: |
-        # Extract the version from the .nupkg file using nuget or dotnet cli
-        VERSION=$(dotnet nuget list ${{ env.PACKAGE_PATH }} --include-prerelease | head -n 1 | awk '{print $2}')
+        # Extract the version from the filename, assuming the pattern is 'PackageName.Version.nupkg'
+        VERSION=$(basename ${{ env.PACKAGE_PATH }} | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "Extracted version: $VERSION"
 

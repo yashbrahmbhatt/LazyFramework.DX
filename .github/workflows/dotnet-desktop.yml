@@ -21,15 +21,15 @@ jobs:
 
     # Restore dependencies
     - name: Restore dependencies
-      run: dotnet restore src/LazyFramework.DX/LazyFramework.DX.csproj
+      run: dotnet restore src/LazyFramework.DX.csproj
 
     # Build the project
     - name: Build
-      run: dotnet build src/LazyFramework.DX/LazyFramework.DX.csproj --configuration Release
+      run: dotnet build src/LazyFramework.DX.csproj --configuration Release
 
     # Pack the project to create a NuGet package
     - name: Pack
-      run: dotnet pack src/LazyFramework.DX/LazyFramework.DX.csproj --configuration Release --output ./nupkgs
+      run: dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./nupkgs
 
     # Publish the NuGet package
     - name: Publish to NuGet

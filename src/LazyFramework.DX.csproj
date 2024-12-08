@@ -10,6 +10,11 @@
 		<Version>$([System.DateTime]::Now.ToString("yy.MM.dd.HHmmss"))</Version>
 		<FileVersion>1.0.0.0</FileVersion>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<RepositoryType>GitHub</RepositoryType>
+		<RepositoryUrl>https://github.com/yashbrahmbhatt/LazyFramework.DX</RepositoryUrl>
+		<Authors>Yash Brahmbhatt</Authors>
+		<Description>Leveraging UiPath's Studio API SDK to create a new vehicle for delivering Design-Time tools to help with the developer experience in UiPath Studio.</Description>
+		<Tags>UiPath,LazyFramework,DX,Developer,Design</Tags>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,11 +24,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="EPPlus" Version="7.5.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="System.Activities.Metadata" Version="6.0.0-20231204.1" />
 		<PackageReference Include="UiPath.Activities.Api" Version="24.10.1" />
-		<PackageReference Include="UiPath.Workflow" Version="6.0.0-20231211-03" />
 	</ItemGroup>
 
 </Project>

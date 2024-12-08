@@ -31,6 +31,7 @@ jobs:
     # Capture the .nupkg file path
     - name: Get .nupkg file path
       id: get_nupkg_path
+      shell: bash
       run: |
         # Capture the full path of the .nupkg file
         PACKAGE_PATH=$(find src/bin/Release/ -name "*.nupkg" | head -n 1)

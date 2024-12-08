@@ -27,15 +27,11 @@ jobs:
     - name: Build
       run: dotnet build src/LazyFramework.DX.csproj --configuration Release
 
-    # Pack the project to create a NuGet package
-    - name: Pack
-      run: dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./nupkgs
-
     # Debug - List Packages
     - name: List packages
-      run: dir .\nupkgs
+      run: dir src\bin\Release\
     # Publish the NuGet package
     - name: Publish to NuGet
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push ./LazyFramework.DX/LazyFramework.DX/nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push src/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

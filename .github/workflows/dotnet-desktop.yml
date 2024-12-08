@@ -40,6 +40,7 @@ jobs:
         # Extract version from .nupkg metadata
     - name: Extract version from .nupkg file
       id: extract_version
+      shell: bash
       run: |
         # Extract the version from the .nupkg file using nuget or dotnet cli
         VERSION=$(dotnet nuget list ${{ env.PACKAGE_PATH }} --include-prerelease | head -n 1 | awk '{print $2}')

@@ -31,6 +31,10 @@ jobs:
     - name: Pack
       run: dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./nupkgs
 
+    # Debug - List Packages
+    - name: List packages
+      run: ls -la ./nupkgs
+
     # Publish the NuGet package
     - name: Publish to NuGet
       env:

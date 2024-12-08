@@ -27,7 +27,6 @@ jobs:
     - name: Build
       run: dotnet build src/LazyFramework.DX.csproj --configuration Release
 
-    # Debug - List Packages
     # Capture the .nupkg file path
     - name: Get .nupkg file path
       id: get_nupkg_path
@@ -38,13 +37,33 @@ jobs:
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         echo "Package path is $PACKAGE_PATH"
 
+    # Extract version number (from the .nupkg or .csproj)
+    - name: Extract version
+      id: extract_version
+      run: |
+        # Assuming version is in the .csproj file or other known location
+        VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/LazyFramework.DX.csproj)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Extracted version: $VERSION"
+
     # Publish to NuGet
     - name: Publish to NuGet
       run: |
         echo "Publishing package to NuGet..."
         dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-        
+
+    # Publish to GitHub
     - name: Publish to GitHub
       run: |
         echo "Publishing package to GitHub..."
-        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source  "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"
+        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"
+
+    # Create GitHub Release
+    - name: Create GitHub Release
+      uses: ghcli/gh-actions@v2
+      with:
+        token: ${{ secrets.TOKEN_GITHUB }}
+        tag_name: "v${{ env.VERSION }}"
+        release_name: "Release v${{ env.VERSION }}"
+        body: "Release notes for version ${{ env.VERSION }}."
+        files: ${{ env.PACKAGE_PATH }}

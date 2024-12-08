@@ -28,10 +28,17 @@ jobs:
       run: dotnet build src/LazyFramework.DX.csproj --configuration Release
 
     # Debug - List Packages
-    - name: List packages
-      run: dir src\bin\Release\
-    # Publish the NuGet package
+    # Capture the .nupkg file path
+    - name: Get .nupkg file path
+      id: get_nupkg_path
+      run: |
+        # Capture the full path of the .nupkg file
+        PACKAGE_PATH=$(find src/bin/Release/ -name "*.nupkg" | head -n 1)
+        echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
+        echo "Package path is $PACKAGE_PATH"
+
+    # Publish to NuGet
     - name: Publish to NuGet
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push src/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: |
+        echo "Publishing package to NuGet..."
+        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

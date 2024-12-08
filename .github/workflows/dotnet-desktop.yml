@@ -43,3 +43,8 @@ jobs:
       run: |
         echo "Publishing package to NuGet..."
         dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        
+    - name: Publish to GitHub
+      run: |
+        echo "Publishing package to GitHub..."
+        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source  "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"

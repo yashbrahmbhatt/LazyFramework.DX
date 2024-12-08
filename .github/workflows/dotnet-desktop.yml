@@ -37,12 +37,12 @@ jobs:
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         echo "Package path is $PACKAGE_PATH"
 
-    # Extract version number (from the .nupkg or .csproj)
-    - name: Extract version
+        # Extract version from .nupkg metadata
+    - name: Extract version from .nupkg file
       id: extract_version
       run: |
-        # Assuming version is in the .csproj file or other known location
-        VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/LazyFramework.DX.csproj)
+        # Extract the version from the .nupkg file using nuget or dotnet cli
+        VERSION=$(dotnet nuget list ${{ env.PACKAGE_PATH }} --include-prerelease | head -n 1 | awk '{print $2}')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "Extracted version: $VERSION"
 
@@ -58,12 +58,28 @@ jobs:
         echo "Publishing package to GitHub..."
         dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"
 
-    # Create GitHub Release
+    # Create GitHub Release using GitHub Script
     - name: Create GitHub Release
-      uses: ghcli/gh-actions@v2
+      uses: actions/github-script@v7
       with:
-        token: ${{ secrets.TOKEN_GITHUB }}
-        tag_name: "v${{ env.VERSION }}"
-        release_name: "Release v${{ env.VERSION }}"
-        body: "Release notes for version ${{ env.VERSION }}."
-        files: ${{ env.PACKAGE_PATH }}
+        script: |
+          const version = process.env.VERSION;
+          const packagePath = process.env.PACKAGE_PATH;
+          const release = await github.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: `v${version}`,
+            name: `Release v${version}`,
+            body: `Release notes for version ${version}.`,
+            draft: false,
+            prerelease: false
+          });
+
+          // Upload the .nupkg file as an asset to the release
+          await github.repos.uploadReleaseAsset({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: release.data.id,
+            name: `LazyFramework.DX-${version}.nupkg`,
+            data: require('fs').createReadStream(packagePath)
+          });

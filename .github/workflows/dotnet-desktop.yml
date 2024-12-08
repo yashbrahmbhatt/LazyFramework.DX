@@ -21,7 +21,7 @@ jobs:
 
     # Restore dependencies
     - name: Restore dependencies
-      run: dotnet restore src/LazyFramework.DX.csproj
+      run: dotnet restore src/LazyFramework.DX.csproj --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json
 
     # Build the project
     - name: Build

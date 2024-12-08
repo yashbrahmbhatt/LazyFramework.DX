@@ -37,16 +37,6 @@ jobs:
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         echo "Package path is $PACKAGE_PATH"
 
-    # Extract version from .nupkg filename
-    - name: Extract version from .nupkg filename
-      id: extract_version
-      shell: bash
-      run: |
-        # Extract the version from the filename, assuming the pattern is 'PackageName.Version.nupkg'
-        VERSION=$(basename ${{ env.PACKAGE_PATH }} | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "Extracted version: $VERSION"
-
     # Publish to NuGet
     - name: Publish to NuGet
       run: |
@@ -64,8 +54,8 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const version = process.env.VERSION;
           const packagePath = process.env.PACKAGE_PATH;
+          const version = packagePath.replace("LazyFramework.DX.","");
           
           // Ensure that github context is properly initialized
           const release = await github.rest.repos.createRelease({

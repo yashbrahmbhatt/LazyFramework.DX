@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-publish:
+  build-and-pack:
     runs-on: windows-latest
 
     steps:
@@ -19,10 +19,42 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Build + Pack
-    - name: Pack NuGet package
+    # Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore src/LazyFramework.DX.csproj --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json
+
+    # Build the project (no packaging yet)
+    - name: Build
+      run: dotnet build src/LazyFramework.DX.csproj --configuration Release
+
+    # Create the NuGet package
+    - name: Pack NuGet package (without UiPath.Activities.Api)
       run: |
-        dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts
+        echo "Packing the NuGet package without UiPath.Activities.Api..."
+        dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts /p:PackStage=true
+
+    # Cache artifacts
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.4.3
+      with:
+        # Artifact name
+        name:  "artifacts" # optional, default is artifact
+        # A file, directory or wildcard pattern that describes what to upload
+        path: "./artifacts"
+        if-no-files-found: error
+  # Publish job
+  publish:
+    runs-on: windows-latest
+    needs: build-and-pack
+    
+    steps:
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
+        name: "artifacts" # optional
+        # Destination path. Supports basic tilde expansion. Defaults to $GITHUB_WORKSPACE
+        path: "./artifacts" # optional
 
     # Capture the .nupkg file path
     - name: Get .nupkg file path

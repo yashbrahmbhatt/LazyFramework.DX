@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LazyFramework.Services.Odin
+namespace LazyFramework.DX.Services.Odin
 {
     public interface IOdinSubscriber
     {

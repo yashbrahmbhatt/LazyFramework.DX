@@ -6,15 +6,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using LazyFramework.Services.Hermes;
+using UiPath.Studio.Api.Theme;
 
-namespace LazyFramework.Services.Hermes
+namespace LazyFramework.DX.Services.Hermes
 {
     public partial class Window : System.Windows.Window
     {
         private static Hermes _hermes;
-        private Logger _logger;
         private string _filterText = string.Empty;
+        private async void Log(string message, LogLevel level = LogLevel.Info) => _hermes.Log(message, "Hermes.Window", level);
 
         private static readonly Dictionary<LogLevel, bool> _filterLevels = Enum
             .GetValues(typeof(LogLevel))
@@ -22,28 +22,21 @@ namespace LazyFramework.Services.Hermes
             .ToDictionary(level => level, _ => true);
 
         private static readonly Dictionary<string, bool> _filterContexts = new Dictionary<string, bool>();
+        private int _theme;
 
-        private class Logger : LoggerConsumer
-        {
-            public Logger(Hermes hermes)
-            {
-                Logger = hermes;
-                LoggerContext = "Hermes.Window";
-            }
-        }
 
-        public Window(Hermes service)
+        public Window(Hermes service, int theme)
         {
+            _theme = theme;
             _hermes = service;
             AddContext("Hermes.Window");
-            _logger = new Logger(_hermes);
 
             InitializeComponent();
 
             PopulateContextComboBox();
             PopulateLogLevelComboBox();
 
-            _logger.Log("Initialized and services started.", LogLevel.Info);
+            Log("Initialized Hermes window.", LogLevel.Info);
 
             Show();
         }
@@ -90,8 +83,8 @@ namespace LazyFramework.Services.Hermes
 
         private System.Windows.Media.Brush GetColorForLevel(LogLevel level) => level switch
         {
-            LogLevel.Debug => Brushes.Blue,
-            LogLevel.Info => Brushes.Black,
+            LogLevel.Debug => _theme == (int)ThemeType.Light ? Brushes.Blue : Brushes.DodgerBlue,
+            LogLevel.Info => _theme == (int) ThemeType.Light ? Brushes.Black : Brushes.White,
             LogLevel.Warning => Brushes.Orange,
             LogLevel.Error => Brushes.Red,
             _ => Brushes.Black,

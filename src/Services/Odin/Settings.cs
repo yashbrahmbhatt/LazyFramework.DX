@@ -10,7 +10,7 @@ using UiPath.Studio.Activities.Api;
 using UiPath.Studio.Activities.Api.Settings;
 
 
-namespace LazyFramework.Services.Odin
+namespace LazyFramework.DX.Services.Odin
 {
     public static class HermesSettingsKeys
     {

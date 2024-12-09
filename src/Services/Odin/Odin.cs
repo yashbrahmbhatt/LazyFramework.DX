@@ -4,32 +4,33 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using LazyFramework.Models;
-using LazyFramework.Services.Hermes;
+using LazyFramework.DX.Services.Hermes;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using UiPath.Studio.Activities.Api;
 
 
 
-namespace LazyFramework.Services.Odin
+namespace LazyFramework.DX.Services.Odin
 {
-    public class Odin : LoggerConsumer, IPublisherService, IDisposable
+    public class Odin : IPublisherService, IDisposable
     {
-        private IWorkflowDesignApi Api { get; set; }
+        private IWorkflowDesignApi _api { get; set; }
         private Settings _settings;
         private readonly FileSystemWatcher _fileWatcher;
         private readonly List<IOdinSubscriber> _subscribers;
+        private Hermes.Hermes _hermes;
+        private void Log(string message, LogLevel level = LogLevel.Info) => _hermes.Log(message, "Odin", level);
         public Odin(IServiceProvider provider)
         {
             try
             {
-
-                Api = (IWorkflowDesignApi)(provider.GetService(typeof(IWorkflowDesignApi)) ?? throw new Exception("Workflow design api is not initialized."));
-                _settings = new Settings(Api);
-                Logger = (Hermes.Hermes)(provider.GetService(typeof(Hermes.Hermes)) ?? throw new Exception("Hermes service is not initialized."));
-                LoggerContext = "Odin";
+                _hermes = provider.GetService<Hermes.Hermes>() ?? throw new Exception("Hermes service doesn't exist.");
+                _api = provider.GetService<IWorkflowDesignApi>() ?? throw new Exception("Workflow design api is not initialized.");
+                _settings = new Settings(_api);
                 Log("Initializing Odin."); // Error here 'No key exists for 'Hermes' ???????
                 _subscribers = new List<IOdinSubscriber>();
-                var folderPath = Api.ProjectPropertiesService.GetProjectDirectory();
+                var folderPath = _api.ProjectPropertiesService.GetProjectDirectory();
                 if (!Directory.Exists(folderPath))
                 {
                     Log($"Directory does not exist: {folderPath}", LogLevel.Error);

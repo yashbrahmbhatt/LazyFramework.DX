@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace LazyFramework.Services.Athena
+namespace LazyFramework.DX.Services.Athena.Models
 {
     public class Setting
     {
@@ -26,9 +26,11 @@ namespace LazyFramework.Services.Athena
         public string ToMemberString(Type type, string indent)
         {
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{indent}/// <summary>");
+            sb.AppendLine($"{indent}/// {Description}");
+            sb.AppendLine($"{indent}/// </summary>");
             sb.AppendLine($"{indent}[Category(\"Settings\")]");
-            sb.AppendLine($"{indent}[Description(\"{Description}\")]");
-            sb.AppendLine($"{indent}public {type.Name} {Name} {{ get {{ return Get<{type.Name}>(\"{Name}\"); }} set {{ Set(\"{Name}\", value); }} }}");
+            sb.AppendLine($"{indent}public {type.Name} {Name} {{ get {{ return Get<{type.Name}>(nameof({Name})); }} set {{ Set(nameof({Name}), value); }} }}");
             sb.AppendLine();
             return sb.ToString();
 

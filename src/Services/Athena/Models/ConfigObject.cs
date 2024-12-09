@@ -5,13 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using LazyFramework.Services.Athena;
-using LazyFramework.Services.Hermes;
-using LazyFramework.Wizards;
+using LazyFramework.DX.Services.Hermes;
+using LazyFramework.DX.Services.Hermes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using LazyFramework.DX.Services.Athena;
 
-namespace LazyFramework.Models.Config
+namespace LazyFramework.DX.Services.Athena.Models
 {
     public class ConfigObject
     {
@@ -28,22 +28,28 @@ namespace LazyFramework.Models.Config
         public List<File> ExcelFiles { get; set; } = new List<File>();
 
         public string ClassName;
+
+        private Action<string, LogLevel> Log;
+
+
         [JsonConstructor]
-        public ConfigObject()
+        public ConfigObject(Action<string, LogLevel> log)
         {
-
+            Log = log;
         }
-        public ConfigObject(string className)
+        public ConfigObject(string className, Action<string, LogLevel> log)
         {
+            Log = log;
             ClassName = className;
         }
-        public ConfigObject(string className, DataSet dataSet, LoggerConsumer logger = null)
+        public ConfigObject(string className, DataSet dataSet, Action<string, LogLevel> log)
         {
+            Log = log;
             ClassName = className;
-            ParseConfigObject(dataSet, logger);
+            ParseConfigObject(dataSet);
         }
 
-        public ConfigObject(string className, string rawJson, LoggerConsumer logger = null)
+        public ConfigObject(string className, string rawJson, Action<string, LogLevel> log)
         {
             ClassName = className;
             JObject json = JObject.Parse(rawJson);
@@ -53,49 +59,49 @@ namespace LazyFramework.Models.Config
             ExcelFiles = json["ExcelFiles"].ToObject<List<File>>();
         }
 
-        public ConfigObject ParseConfigObject(DataSet dataSet, LoggerConsumer logger = null)
+        public ConfigObject ParseConfigObject(DataSet dataSet)
         {
             foreach (DataTable table in dataSet.Tables)
             {
-                if(logger != null) logger.Log("Parsing table " + table.TableName, LogLevel.Debug);
+                Log.Invoke("Parsing table " + table.TableName, LogLevel.Debug);
                 string[] columnNames;
                 bool valid;
                 foreach (DataRow row in table.Rows)
                 {
                     if (row["Name"] == null)
                     {
-                        if (logger != null) logger.Log($"Missing 'Name' column in {table.TableName} table.", LogLevel.Error);
+                        Log.Invoke($"Missing 'Name' column in {table.TableName} table.", LogLevel.Error);
                         valid = false;
                         break;
                     }
                     if (row[0] == DBNull.Value)
                     {
-                        if(logger != null) logger.Log($"Empty row in {table.TableName} table.", LogLevel.Warning);
+                        Log.Invoke($"Empty row in {table.TableName} table.", LogLevel.Warning);
                         continue;
                     }
                     switch (table.TableName)
                     {
                         case "Assets":
                             columnNames = new string[] { "Name", "Value", "Folder", "Description" };
-                            valid = ValidateConfigTable(table, columnNames, logger);
+                            valid = ValidateConfigTable(table, columnNames);
                             if (!valid) break;
                             Assets.Add(new Asset(row["Name"].ToString(), row["Value"].ToString(), row["Folder"].ToString(), row["Description"].ToString()));
                             break;
                         case "TextFiles":
                             columnNames = new string[] { "Name", "Path", "Folder", "Bucket", "Description", "Folder" };
-                            valid = ValidateConfigTable(table, columnNames, logger);
+                            valid = ValidateConfigTable(table, columnNames);
                             if (!valid) break;
                             TextFiles.Add(new File(row["Name"].ToString(), row["Path"].ToString(), row["Folder"].ToString(), row["Bucket"].ToString(), row["Description"].ToString(), FileType.Text));
                             break;
                         case "ExcelFiles":
                             columnNames = new string[] { "Name", "Path", "Folder", "Bucket", "Description", "Folder" };
-                            valid = ValidateConfigTable(table, columnNames, logger);
+                            valid = ValidateConfigTable(table, columnNames);
                             if (!valid) break;
                             TextFiles.Add(new File(row["Name"].ToString(), row["Path"].ToString(), row["Folder"].ToString(), row["Bucket"].ToString(), row["Description"].ToString(), FileType.Excel));
                             break;
                         default:
                             columnNames = new string[] { "Name", "Value", "Description" };
-                            valid = ValidateConfigTable(table, columnNames, logger);
+                            valid = ValidateConfigTable(table, columnNames);
                             if (!valid) break;
 
                             Settings.Add(new Setting(row["Name"].ToString(), row["Value"].ToString(), row["Description"].ToString()));
@@ -107,21 +113,21 @@ namespace LazyFramework.Models.Config
             return this;
         }
 
-        public bool ValidateConfigTable(DataTable table, string[] columnNames, LoggerConsumer logger = null)
+        public bool ValidateConfigTable(DataTable table, string[] columnNames)
         {
             bool valid = true;
             foreach (var name in columnNames)
             {
                 if (!table.Columns.Contains(name))
                 {
-                    if(logger != null) logger.Log($"Missing column '{name}' in {table.TableName} table.", LogLevel.Error);
+                    Log.Invoke($"Missing column '{name}' in {table.TableName} table.", LogLevel.Error);
                     valid = false;
                 }
             }
             return valid;
         }
 
-        public string GetClassString(string ns, LoggerConsumer logger = null)
+        public string GetClassString(string ns)
         {
             StringBuilder sb = new StringBuilder();
             try
@@ -186,14 +192,14 @@ namespace LazyFramework.Models.Config
             }
             catch (Exception ex)
             {
-                if (logger != null) logger.Log($"Error getting class string file: {ex.Message}", LogLevel.Error);
+                Log.Invoke($"Error getting class string file: {ex.Message}", LogLevel.Error);
                 return "";
             }
         }
 
         public (Type type, object value) TryParse(string value)
         {
-            if(value == null)
+            if (value == null)
             {
                 return (typeof(string), "");
             }

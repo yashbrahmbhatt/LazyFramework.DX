@@ -7,21 +7,25 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using LazyFramework.Models;
-using LazyFramework.Models.Config;
-using LazyFramework.Services.Hermes;
-using LazyFramework.Services.Odin;
+using LazyFramework.DX.Services.Hermes;
+using LazyFramework.DX.Services.Odin;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using UiPath.Studio.Activities.Api;
 using UiPath.Studio.Activities.Api.Settings;
 using File = System.IO.File;
 
-namespace LazyFramework.Services.Athena
-{
-    public class Athena : Services.Hermes.LoggerConsumer, IOdinSubscriber
-    {
-        private Odin.Odin odin;
 
+using LazyFramework.DX.Services.Athena.Models;
+
+namespace LazyFramework.DX.Services.Athena
+{
+    public class Athena : IOdinSubscriber
+    {
+        private static Odin.Odin odin;
+        private static Hermes.Hermes _hermes;
+        private static async void Log(string message, LogLevel level = LogLevel.Info) => _hermes.Log(message, "Athena", level);
+        private Action<string, LogLevel> LogAction = (s, l) => Log(s, l);
         private Settings settings;
         private string projectPath;
         private string outputRoot;
@@ -31,16 +35,15 @@ namespace LazyFramework.Services.Athena
         private SettingsObserver settingsObserver = new SettingsObserver();
 
 
-
-        public Athena(IServiceProvider provider) { 
-            Logger = provider.GetService<Hermes.Hermes>() ?? throw new Exception("Hermes service doesn't exist.");
-            LoggerContext = "Athena";
+        public Athena(IServiceProvider provider)
+        {
+            _hermes = provider.GetService<Hermes.Hermes>() ?? throw new Exception("Hermes service doesn't exist.");
             Log("Initializing Athena.");
             odin = provider.GetService<Odin.Odin>() ?? throw new Exception("Odin service doesn't exist.");
             odin.Subscribe(this);
             Log("Odin service subscribed.");
             var api = provider.GetService<IWorkflowDesignApi>() ?? throw new Exception("IWorkflowDesign service doesn't exist.");
-            
+
             settings = new Settings(api);
             Log("Settings initialized.");
             projectPath = api.ProjectPropertiesService.GetProjectDirectory();
@@ -71,10 +74,10 @@ namespace LazyFramework.Services.Athena
         public bool CheckConfigExists()
         {
             var exists = System.IO.File.Exists(configFilePath);
-            if(!exists)
+            if (!exists)
             {
                 Log($"Could not find config file with path '{configFilePath}'. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
-               
+
             }
             return exists;
         }
@@ -82,7 +85,7 @@ namespace LazyFramework.Services.Athena
         public void OnSettingChanged(SettingsValueChangedArgs e)
         {
             Log($"Setting changed: {e.ChangedSettings}");
-            if(e.ChangedSettings.Contains(SettingKeys.ConfigFilePathSettingKey))
+            if (e.ChangedSettings.Contains(SettingKeys.ConfigFilePathSettingKey))
             {
                 configFilePath = Path.Combine(projectPath, settings.ConfigFilePath);
                 Log($"Config file path updated to '{configFilePath}'.");
@@ -99,7 +102,7 @@ namespace LazyFramework.Services.Athena
             return filePath.ToLower().Trim() == configFilePath.ToLower().Trim();
         }
 
-        public void OnFileSystemEvent(FileSystemEventArgs e, Odin.EventType eventType)
+        public void OnFileSystemEvent(FileSystemEventArgs e, EventType eventType)
         {
             Log($"{eventType.ToString()} : {e.FullPath}", LogLevel.Info);
             var exists = CheckConfigExists();
@@ -107,7 +110,7 @@ namespace LazyFramework.Services.Athena
             if (e.FullPath == configFilePath)
             {
                 Log($"Config file {eventType.ToString()} event detected.");
-                if (eventType == Odin.EventType.Deleted)
+                if (eventType == EventType.Deleted)
                 {
                     Log($"Config file deleted. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
                 }
@@ -121,7 +124,7 @@ namespace LazyFramework.Services.Athena
         // Notify for renamed events
         public void OnRenamedEvent(RenamedEventArgs e)
         {
-            if(e.OldFullPath == configFilePath)
+            if (e.OldFullPath == configFilePath)
             {
                 Log($"Config file renamed to {e.FullPath}.");
                 var ask = MessageBox.Show($"Config file renamed to {e.FullPath}. Would you like to update the setting?", "Athena", MessageBoxButton.YesNo);
@@ -131,7 +134,7 @@ namespace LazyFramework.Services.Athena
                     UpdateConfigClasses();
                 }
                 else CheckConfigExists();
-                
+
             }
         }
 
@@ -143,23 +146,35 @@ namespace LazyFramework.Services.Athena
             sb.AppendLine();
             sb.AppendLine($"namespace {ns} {{"); // open
             sb.AppendLine($"\tpublic class BaseConfig {{"); // open
-            sb.AppendLine("\t\t// Houses the actual values of the config");
+            sb.AppendLine($"\t\t// <summary>");
+            sb.AppendLine($"\t\t// Base class for all config classes.");
+            sb.AppendLine($"\t\t// </summary>");
             sb.AppendLine($"\t\tpublic Dictionary<string, object> _config = new Dictionary<string, object>();");
             sb.AppendLine();
-            sb.AppendLine("\t\t// Generic getter method, now safely casts to the requested type");
+            sb.AppendLine($"\t\t// <summary>");
+            sb.AppendLine($"\t\t// <remarks>A getter with type safety.</remarks>");
+            sb.AppendLine($"\t\t// <param name=\"name\">The key of the config value to get.</param>");
+            sb.AppendLine($"\t\t// <returns>The value of the config key.</returns>");
+            sb.AppendLine($"\t\t// <exception cref=\"KeyNotFoundException\">Thrown when the key is not found in the config.</exception>");
+            sb.AppendLine($"\t\t//</summary>");
             sb.AppendLine($"\t\tpublic T Get<T>(string name) {{"); // open
             sb.AppendLine($"\t\t\tif (_config.ContainsKey(name)) return (T)_config[name];");
             sb.AppendLine($"\t\t\tthrow new KeyNotFoundException($\"Key '\" + name + \"' not found in the config.\");");
             sb.AppendLine($"\t\t}}"); // close
             sb.AppendLine();
-            sb.AppendLine($"\t\t// Setter with type safety");
+            sb.AppendLine($"\t\t// <summary>");
+            sb.AppendLine($"\t\t// <remarks>A setter with type safety.</remarks>");
+            sb.AppendLine($"\t\t// <param name=\"name\">The key of the config value to set.</param>");
+            sb.AppendLine($"\t\t// <param name=\"value\">The value to set.</param>");
+            sb.AppendLine($"\t\t// <exception cref=\"ArgumentNullException\">Thrown when the value is null.</exception>");
+            sb.AppendLine($"\t\t// </summary>");
             sb.AppendLine($"\t\tpublic void Set(string name, object value) {{"); // open
             sb.AppendLine($"\t\t\tif (value == null) throw new ArgumentNullException(nameof(value), \"Value cannot be null.\");");
             sb.AppendLine($"\t\t\t_config[name] = value;");
             sb.AppendLine($"\t\t}}"); // close
             sb.AppendLine($"\t}}"); // close
             sb.AppendLine($"}}"); // close
-            if(!Directory.Exists(outputRoot))
+            if (!Directory.Exists(outputRoot))
             {
                 Directory.CreateDirectory(outputRoot);
             }
@@ -169,7 +184,7 @@ namespace LazyFramework.Services.Athena
         public async Task ReadConfigFile()
         {
             var exists = CheckConfigExists();
-            if(!exists) return;
+            if (!exists) return;
 
             Log($"Reading config file: {configFilePath}");
 
@@ -186,8 +201,8 @@ namespace LazyFramework.Services.Athena
                         Log("Failed to deserialize config file as single config.", LogLevel.Error);
                         return;
                     }
-                    var cObjects = JsonConvert.DeserializeObject<Dictionary<string,ConfigObject>>(json);
-                    if(cObjects == null)
+                    var cObjects = JsonConvert.DeserializeObject<Dictionary<string, ConfigObject>>(json);
+                    if (cObjects == null)
                     {
                         Log("Failed to deserialize config file as multiple configs.", LogLevel.Error);
                         return;
@@ -196,8 +211,8 @@ namespace LazyFramework.Services.Athena
                 else if (settings.ConfigFileType == ConfigFileType.Excel.Value)
                 {
                     // Read and process the Excel file
-                    var dataSet = await ExcelHandler.ReadExcelConfigFile(configFilePath, this);
-                    var configObject = new ConfigObject("", dataSet, this);
+                    var dataSet = await ExcelHandler.ReadExcelConfigFile(configFilePath, (s, l) => Log(s, l));
+                    var configObject = new ConfigObject("", dataSet, LogAction);
                     configObject.ClassName = "Config";
                     configObjects.Add(configObject);
                     Log($"Excel file processed. Found {configObject.Settings.Count} settings, {configObject.Assets.Count} assets, {configObject.TextFiles.Count} text files, and {configObject.ExcelFiles.Count} excel files.", LogLevel.Debug);
@@ -215,20 +230,19 @@ namespace LazyFramework.Services.Athena
 
         public async void WriteConfig(string path, ConfigObject configObject)
         {
-            
-            var classString = configObject.GetClassString(settings.OutputNamespace, this);
-            if(!Directory.Exists(Path.GetDirectoryName(path)))
+
+            var classString = configObject.GetClassString(settings.OutputNamespace);
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
-             System.IO.File.WriteAllText(path, classString);
+            System.IO.File.WriteAllText(path, classString);
         }
 
 
 
         public void OnDisposed()
         {
-            Log($"Odin Disposed", LogLevel.Info);
         }
     }
 }

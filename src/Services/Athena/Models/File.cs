@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LazyFramework.Models;
 using Newtonsoft.Json;
-namespace LazyFramework.Services.Athena
+namespace LazyFramework.DX.Services.Athena
 {
     public class File
     {
@@ -53,17 +53,18 @@ namespace LazyFramework.Services.Athena
         public string ToMemberString(string indent)
         {
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{indent}/// <summary>");
+            sb.AppendLine($"{indent}/// {Description}");
+            sb.AppendLine($"{indent}/// </summary>");
             if (Type == FileType.Excel)
             {
                 sb.AppendLine($"{indent}[Category(\"TextFiles\")]");
-                sb.AppendLine($"{indent}[Description(\"{Description}\")]");
-                sb.AppendLine($"{indent}public DataSet {Name} {{ get {{ return Get<DataSet>(\"{Name}\"); }} set {{ Set(\"{Name}\", value); }} }}");
+                sb.AppendLine($"{indent}public DataSet {Name} {{ get {{ return Get<DataSet>(nameof({Name})); }} set {{ Set(nameof({Name}), value); }} }}");
             }
             else
             {
                 sb.AppendLine($"{indent}[Category(\"ExcelFiles\")]");
-                sb.AppendLine($"{indent}[Description(\"{Description}\")]");
-                sb.AppendLine($"{indent}public string {Name} {{ get {{ return Get<string>(\"{Name}\"); }} set {{ Set(\"{Name}\", value); }} }}");
+                sb.AppendLine($"{indent}public string {Name} {{ get {{ return Get<string>(nameof({Name})); }} set {{ Set(nameof({Name}), value); }} }}");
             }
             sb.AppendLine();
             return sb.ToString();

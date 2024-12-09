@@ -14,8 +14,8 @@ namespace LazyFramework
 
         public static void CreateSettings(IWorkflowDesignApi workflowDesignApi)
         {
-            new Services.Odin.SettingsCategory().Initialize(workflowDesignApi.Settings);
-            new Services.Athena.SettingsCategory().Initialize(workflowDesignApi);
+            new DX.Services.Odin.SettingsCategory().Initialize(workflowDesignApi.Settings);
+            new DX.Services.Athena.SettingsCategory().Initialize(workflowDesignApi);
         }
     }
 }

@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
-using LazyFramework.Services.Hermes;
+using LazyFramework.DX.Services.Hermes;
 using OfficeOpenXml;
 namespace LazyFramework.Models
 {
 
     public static class ExcelHandler
     {
-        public async static Task<DataSet?> ReadExcelConfigFile(string filePath, LoggerConsumer? logger = null)
+
+        public async static Task<DataSet?> ReadExcelConfigFile(string filePath, Action<string, LogLevel> Log)
         {
             try
             {
@@ -20,7 +21,7 @@ namespace LazyFramework.Models
                 // Ensure the file exists
                 if (!fileInfo.Exists)
                 {
-                    if(logger != null) logger.Log($"File {filePath} does not exist.");
+                    Log.Invoke($"File {filePath} does not exist.", LogLevel.Debug);
                     return null;
                 }
 
@@ -31,7 +32,7 @@ namespace LazyFramework.Models
                     // Iterate through each sheet in the workbook
                     foreach (var worksheet in workbook.Worksheets)
                     {
-                        var table = await ProcessExcelSheetAsync(worksheet, logger);
+                        var table = await ProcessExcelSheetAsync(worksheet, Log);
                         if (table != null)
                         {
                             dataSet.Tables.Add(table);
@@ -42,14 +43,14 @@ namespace LazyFramework.Models
             }
             catch (Exception ex)
             {
-                if (logger != null) logger.Log($"Error reading Excel config file: {ex.Message}");
+                Log.Invoke($"Error reading Excel config file: {ex.Message}", LogLevel.Debug);
                 return null;
             }
         }
 
-        private async static Task<DataTable> ProcessExcelSheetAsync(ExcelWorksheet worksheet, LoggerConsumer logger)
+        private async static Task<DataTable> ProcessExcelSheetAsync(ExcelWorksheet worksheet, Action<string, LogLevel> Log)
         {
-            if (logger != null) logger.Log($"Processing sheet: {worksheet.Name}");
+            Log.Invoke($"Processing sheet: {worksheet.Name}", LogLevel.Debug);
 
             var rowCount = worksheet.Dimension.Rows;
             var colCount = worksheet.Dimension.Columns;
@@ -66,7 +67,7 @@ namespace LazyFramework.Models
                 for (int col = 1; col <= colCount; col++)  // Starting from 1
                 {
                     var cell = worksheet.Cells[row, col];
-                    var cellValue = await GetCellValueAsync(cell, logger);
+                    var cellValue = await GetCellValueAsync(cell, Log);
 
                     // Skip empty cells
                     if (!string.IsNullOrWhiteSpace(cellValue))
@@ -82,7 +83,7 @@ namespace LazyFramework.Models
                     for (int col = 1; col <= colCount; col++)
                     {
                         var headerCell = worksheet.Cells[row, col];
-                        var headerValue = await GetCellValueAsync(headerCell, logger);
+                        var headerValue = await GetCellValueAsync(headerCell, Log);
                         if (!string.IsNullOrWhiteSpace(headerValue))
                         {
                             dataTable.Columns.Add(headerValue);
@@ -106,7 +107,7 @@ namespace LazyFramework.Models
         }
 
 
-        private async static Task<string> GetCellValueAsync(ExcelRange cell, LoggerConsumer logger)
+        private async static Task<string> GetCellValueAsync(ExcelRange cell, Action<string, LogLevel> Log)
         {
             return await Task.Run(() =>
             {

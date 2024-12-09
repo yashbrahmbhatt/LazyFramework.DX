@@ -20,7 +20,6 @@
 
 	<ItemGroup>
 		<None Include="Models\WorkflowEditor\WorkflowEditor.cs" />
-		<None Include="Wizards\Main.cs" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
 		<Reference Include="System.Activities" />
@@ -38,6 +37,9 @@
 		<PackageReference Include="UiPath.Activities.Api" Version="24.10.1">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="WorkflowAnalyzer\" />
 	</ItemGroup>
 
 </Project>

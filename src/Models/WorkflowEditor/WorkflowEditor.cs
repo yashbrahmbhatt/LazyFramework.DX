@@ -12,7 +12,7 @@ using LazyFramework.Models.WorkflowEditor;
 using LazyFramework.Models.WorkflowEditor.Primitives;
 using Argument = LazyFramework.Models.WorkflowEditor.Primitives.Argument;
 
-namespace LazyFramework.WorkflowEditor
+namespace LazyFramework.WorkflowEditor 
 {
     public class Editor
     {

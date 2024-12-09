@@ -7,8 +7,9 @@ using UiPath.Studio.Activities.Api.Settings;
 using UiPath.Studio.Activities.Api;
 using LazyFramework.Models;
 using System.Activities;
+using LazyFramework.DX.Services.Athena;
 
-namespace LazyFramework.Services.Athena
+namespace LazyFramework.DX.Services.Athena
 {
     public static class SettingKeys
     {

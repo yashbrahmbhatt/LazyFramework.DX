@@ -6,7 +6,8 @@
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild Condition="'$(BuildConfiguration)' == 'Debug'">True</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild Condition="'$(BuildConfiguration)' == 'Release'">false</GeneratePackageOnBuild>
 		<Version>$([System.DateTime]::Now.ToString("yy.MM.dd.HHmmss"))</Version>
 		<FileVersion>1.0.0.0</FileVersion>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>

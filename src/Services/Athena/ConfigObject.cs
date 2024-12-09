@@ -16,16 +16,16 @@ namespace LazyFramework.Models.Config
     public class ConfigObject
     {
         [JsonProperty("Settings")]
-        public List<Setting> Settings { get; set; } = new();
+        public List<Setting> Settings { get; set; } = new List<Setting>();
 
         [JsonProperty("Assets")]
-        public List<Asset> Assets { get; set; } = new();
+        public List<Asset> Assets { get; set; } = new List<Asset>();
 
         [JsonProperty("TextFiles")]
-        public List<File> TextFiles { get; set; } = new();
+        public List<File> TextFiles { get; set; } = new List<File>();
 
         [JsonProperty("ExcelFiles")]
-        public List<File> ExcelFiles { get; set; } = new();
+        public List<File> ExcelFiles { get; set; } = new List<File>();
 
         public string ClassName;
         [JsonConstructor]

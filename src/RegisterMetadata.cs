@@ -1,5 +1,11 @@
-﻿using System;
+﻿#if NET6_0_OR_GREATER
+extern alias SAM;
+using SAM.System.Activities.Presentation.Metadata;
+#endif
+#if NETFRAMEWORK
 using System.Activities.Presentation.Metadata;
+#endif
+using System;
 using System.Diagnostics;
 using UiPath.Studio.Activities.Api;
 

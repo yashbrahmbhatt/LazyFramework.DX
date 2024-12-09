@@ -36,7 +36,7 @@
 			<Aliases>SAM</Aliases>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="UiPath.Activities.Api" Version="24.10.1">
+		<PackageReference Condition="'$(IncludeStudioSDK)' != 'true'" Include="UiPath.Activities.Api" Version="24.10.1">
 			<PrivateAssets>true</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>

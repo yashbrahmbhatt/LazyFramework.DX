@@ -25,7 +25,7 @@ namespace LazyFramework.Services.Athena
 
         public string ToMemberString(Type type, string indent)
         {
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine($"{indent}[Category(\"Settings\")]");
             sb.AppendLine($"{indent}[Description(\"{Description}\")]");
             sb.AppendLine($"{indent}public {type.Name} {Name} {{ get {{ return Get<{type.Name}>(\"{Name}\"); }} set {{ Set(\"{Name}\", value); }} }}");

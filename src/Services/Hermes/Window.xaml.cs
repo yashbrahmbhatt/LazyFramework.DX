@@ -21,7 +21,7 @@ namespace LazyFramework.Services.Hermes
             .Cast<LogLevel>()
             .ToDictionary(level => level, _ => true);
 
-        private static readonly Dictionary<string, bool> _filterContexts = new();
+        private static readonly Dictionary<string, bool> _filterContexts = new Dictionary<string, bool>();
 
         private class Logger : LoggerConsumer
         {
@@ -63,13 +63,12 @@ namespace LazyFramework.Services.Hermes
 
             StreamTextBox.Dispatcher.Invoke(() =>
             {
-                StreamTextBox.Document.Blocks.Clear();
+            StreamTextBox.Document.Blocks.Clear();
 
                 var filteredLogs = _hermes.GetLogs()
                     .Where(log => _filterLevels[log.Level])
                     .Where(log => _filterContexts[log.Context])
-                    .Where(log => string.IsNullOrEmpty(_filterText) || log.Message.Contains(_filterText, StringComparison.OrdinalIgnoreCase));
-
+                    .Where(log => string.IsNullOrEmpty(_filterText) || log.Message.ToLower().Trim().Contains(_filterText.ToLower().Trim()));
                 foreach (var log in filteredLogs)
                 {
                     AppendLogToRichTextBox(log);
@@ -149,7 +148,7 @@ namespace LazyFramework.Services.Hermes
 
         private void LogLevel_Toggle(object sender, RoutedEventArgs e)
         {
-            if (sender is not CheckBox checkbox) return;
+            if (!(sender is CheckBox checkbox)) return;
 
             var logLevelName = checkbox.Content?.ToString();
             if (logLevelName == null) return;
@@ -164,7 +163,7 @@ namespace LazyFramework.Services.Hermes
 
         private void Context_Toggle(object sender, RoutedEventArgs e)
         {
-            if (sender is not CheckBox checkbox) return;
+            if (!(sender is CheckBox checkbox)) return;
 
             var contextName = checkbox.Content?.ToString();
             if (string.IsNullOrEmpty(contextName)) return;
@@ -186,7 +185,7 @@ namespace LazyFramework.Services.Hermes
             var logs = _hermes.GetLogs()
                 .Where(log => _filterLevels[log.Level])
                 .Where(log => _filterContexts[log.Context])
-                .Where(log => string.IsNullOrEmpty(_filterText) || log.Message.Contains(_filterText, StringComparison.OrdinalIgnoreCase));
+                .Where(log => string.IsNullOrEmpty(_filterText) || log.Message.ToLower().Trim().Contains(_filterText.ToLower().Trim()));
 
             // Save logs to a file (e.g., using SaveFileDialog or another method)
             var logContent = string.Join(Environment.NewLine, logs.Select(log => log.ToString()));

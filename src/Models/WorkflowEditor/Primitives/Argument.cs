@@ -188,11 +188,11 @@ namespace LazyFramework.Models.WorkflowEditor.Primitives
         {
             get
             {
-                return Property_TypeAttribute.Value.Split("(").First().Replace("Argument", "");
+                return Property_TypeAttribute.Value.Split('(').First().Replace("Argument", "");
             }
             set
             {
-                var oldSplit = Property_TypeAttribute.Value.Split("(");
+                var oldSplit = Property_TypeAttribute.Value.Split('(');
                 oldSplit[0] = value + "Argument";
                 var output = string.Join("(", oldSplit);
                 Property_TypeAttribute.Value = output;
@@ -202,15 +202,15 @@ namespace LazyFramework.Models.WorkflowEditor.Primitives
         {
             get
             {
-                var split = Property_TypeAttribute.Value.Split("(").ToList();
+                var split = Property_TypeAttribute.Value.Split('(').ToList();
                 split.RemoveAt(0);
                 split[split.Count - 1] = split[split.Count - 1].Remove(split[split.Count - 1].Length - 1);
                 return string.Join("(", split);
             }
             set
             {
-                var split = Property_TypeAttribute.Value.Split("(").ToList();
-                Property_TypeAttribute.Value = split[0] + "(" + value + ")";
+                var split = Property_TypeAttribute.Value.Split('(').ToList();
+                Property_TypeAttribute.Value = split[0] + '(' + value + ")";
 
                 if (Argument_DirectionWrapper_TypeAttribute != null)
                 {
@@ -228,7 +228,7 @@ namespace LazyFramework.Models.WorkflowEditor.Primitives
         {
             get
             {
-                XObject valueElement = PropertyElement.Document.Descendants().FirstOrDefault(d => d.Name.LocalName == Class + "." + Name && d.Parent == PropertyElement.Document.Root, null);
+                XObject valueElement = PropertyElement.Document.Descendants().FirstOrDefault(d => d.Name.LocalName == Class + "." + Name && d.Parent == PropertyElement.Document.Root);
                 if (valueElement == null)
                 {
                     valueElement = XDocumentHelpers.GetAttribute(PropertyElement.Document.Root, Class + "." + Name);
@@ -286,7 +286,7 @@ namespace LazyFramework.Models.WorkflowEditor.Primitives
                 }
                 else
                 {
-                    return ((XElement)ArgumentObject).Descendants().FirstOrDefault(ved => LocalName.Expressions.Contains(ved.Name.LocalName), null);
+                    return ((XElement)ArgumentObject).Descendants().FirstOrDefault(ved => LocalName.Expressions.Contains(ved.Name.LocalName));
                 }
             }
         }

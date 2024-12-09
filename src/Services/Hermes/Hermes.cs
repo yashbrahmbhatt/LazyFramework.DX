@@ -42,7 +42,7 @@ namespace LazyFramework.Services.Hermes
 
     public class Hermes
     {
-        private readonly Queue<Log> _logs = new(2000);
+        private readonly Queue<Log> _logs = new Queue<Log>(2000);
         private Window _window;
 
 
@@ -75,7 +75,6 @@ namespace LazyFramework.Services.Hermes
         public void Log(string message, string context, LogLevel level = LogLevel.Info )
         {
             var log = new Log(DateTime.Now, level, message, context);
-            _logs.EnsureCapacity(2000);
             if (_logs.Count == 2000) _logs.Dequeue();
             _logs.Enqueue(log);
             if (_window == null) return;

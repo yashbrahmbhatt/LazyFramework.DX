@@ -26,7 +26,7 @@ namespace LazyFramework.Services.Athena
         private string projectPath;
         private string outputRoot;
         private string configFilePath;
-        private List<ConfigObject> configObjects = new ();
+        private List<ConfigObject> configObjects = new List<ConfigObject>();
 
         private SettingsObserver settingsObserver = new SettingsObserver();
 
@@ -127,7 +127,7 @@ namespace LazyFramework.Services.Athena
                 var ask = MessageBox.Show($"Config file renamed to {e.FullPath}. Would you like to update the setting?", "Athena", MessageBoxButton.YesNo);
                 if (ask == MessageBoxResult.Yes)
                 {
-                    settings.ConfigFilePath = Path.GetRelativePath(projectPath, e.FullPath);
+                    settings.ConfigFilePath = DX.Models.Helpers.PathExtensions.GetRelativePath(projectPath, e.FullPath);
                     UpdateConfigClasses();
                 }
                 else CheckConfigExists();
@@ -163,7 +163,7 @@ namespace LazyFramework.Services.Athena
             {
                 Directory.CreateDirectory(outputRoot);
             }
-            await System.IO.File.WriteAllTextAsync(Path.Combine(outputRoot, "BaseConfig.cs"), sb.ToString());
+            System.IO.File.WriteAllText(Path.Combine(outputRoot, "BaseConfig.cs"), sb.ToString());
         }
 
         public async Task ReadConfigFile()
@@ -178,7 +178,7 @@ namespace LazyFramework.Services.Athena
                 if (settings.ConfigFileType == ConfigFileType.Json.Value)
                 {
                     // Read the JSON file
-                    string json = await System.IO.File.ReadAllTextAsync(configFilePath);
+                    string json = System.IO.File.ReadAllText(configFilePath);
                     var configObject = JsonConvert.DeserializeObject<ConfigObject>(json);
 
                     if (configObject == null)
@@ -221,7 +221,7 @@ namespace LazyFramework.Services.Athena
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
-            await System.IO.File.WriteAllTextAsync(path, classString);
+             System.IO.File.WriteAllText(path, classString);
         }
 
 

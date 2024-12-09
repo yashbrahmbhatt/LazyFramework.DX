@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<TargetFrameworks>net6.0-windows;net7.0-windows;net8.0-windows</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
+		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<GeneratePackageOnBuild Condition="'$(Configuration)' == 'Debug'">True</GeneratePackageOnBuild>
@@ -11,6 +11,7 @@
 		<Version>$([System.DateTime]::Now.ToString("yy.MM.dd.HHmmss"))</Version>
 		<FileVersion>1.0.0.0</FileVersion>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<LangVersion>8</LangVersion>
 		<RepositoryType>GitHub</RepositoryType>
 		<RepositoryUrl>https://github.com/yashbrahmbhatt/LazyFramework.DX</RepositoryUrl>
 		<Authors>Yash Brahmbhatt</Authors>
@@ -22,7 +23,11 @@
 		<None Include="Models\WorkflowEditor\WorkflowEditor.cs" />
 		<None Include="Wizards\Main.cs" />
 	</ItemGroup>
-
+	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+		<Reference Include="System.Activities" />
+		<Reference Include="System.Activities.Core.Presentation" />
+		<Reference Include="System.Activities.Presentation" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="EPPlus" Version="7.5.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />

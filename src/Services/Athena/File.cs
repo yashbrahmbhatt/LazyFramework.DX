@@ -52,7 +52,7 @@ namespace LazyFramework.Services.Athena
 
         public string ToMemberString(string indent)
         {
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
             if (Type == FileType.Excel)
             {
                 sb.AppendLine($"{indent}[Category(\"TextFiles\")]");

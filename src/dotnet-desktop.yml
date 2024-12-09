@@ -19,18 +19,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Restore dependencies
-    - name: Restore dependencies
-      run: dotnet restore src/LazyFramework.DX.csproj --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json
-
-    # Build the project (no packaging yet)
-    - name: Build
-      run: dotnet build src/LazyFramework.DX.csproj --configuration Release
-
-    # Create the NuGet package
-    - name: Pack NuGet package (without UiPath.Activities.Api)
+    # Build + Pack
+    - name: Pack NuGet package
       run: |
-        echo "Packing the NuGet package without UiPath.Activities.Api..."
         dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts
 
     # Capture the .nupkg file path

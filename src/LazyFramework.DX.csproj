@@ -36,8 +36,8 @@
 			<Aliases>SAM</Aliases>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Condition="'$(IsPipeline)' != 'true'" Include="UiPath.Activities.Api" Version="24.10.1">
-			<PrivateAssets>true</PrivateAssets>
+		<PackageReference Include="UiPath.Activities.Api" Version="24.10.1">
+			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
 

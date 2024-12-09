@@ -23,9 +23,13 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/LazyFramework.DX.csproj --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json
 
-    # Build the project
+    # Build the project (no packaging yet)
     - name: Build
       run: dotnet build src/LazyFramework.DX.csproj --configuration Release
+
+    # Create the NuGet package
+    - name: Pack NuGet package
+      run: dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts
 
     # Capture the .nupkg file path
     - name: Get .nupkg file path
@@ -33,7 +37,7 @@ jobs:
       shell: bash
       run: |
         # Capture the full path of the .nupkg file
-        PACKAGE_PATH=$(find src/bin/Release/ -name "*.nupkg" | head -n 1)
+        PACKAGE_PATH=$(find ./artifacts -name "*.nupkg" | head -n 1)
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         echo "Package path is $PACKAGE_PATH"
 
@@ -49,31 +53,27 @@ jobs:
         echo "Publishing package to GitHub..."
         dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"
 
-    # Create GitHub Release using GitHub Script
-   # - name: Create GitHub Release
-   #   uses: actions/github-script@v7
-   #   with:
-   #     script: |
-   #       const packagePath = process.env.PACKAGE_PATH;
-   #       const version = packagePath.replace("LazyFramework.DX.","");
-   #       
-   #       // Ensure that github context is properly initialized
-   #       const release = await github.rest.repos.createRelease({
-   #        owner: context.repo.owner,
-   #        repo: context.repo.repo,
-   #        tag_name: `v${version}`,
-   #        name: `Release v${version}`,
-   #        body: `Release notes for version ${version}.`,
-   #        draft: false,
-   #        prerelease: false
-   #      });
-#
-#          // Upload the .nupkg file as an asset to the release
-#          await github.rest.repos.uploadReleaseAsset({
-#            owner: context.repo.owner,
-#           repo: context.repo.repo,
-#            release_id: release.data.id,
-#            name: `LazyFramework.DX-${version}.nupkg`,
-#            data: require('fs').createReadStream(packagePath)
-#          });
-
+    # Optionally, create a GitHub release (this step is currently commented out)
+    # - name: Create GitHub Release
+    #   uses: actions/github-script@v7
+    #   with:
+    #     script: |
+    #       const packagePath = process.env.PACKAGE_PATH;
+    #       const version = packagePath.replace("LazyFramework.DX.","");
+    #       
+    #       const release = await github.rest.repos.createRelease({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         tag_name: `v${version}`,
+    #         name: `Release v${version}`,
+    #         body: `Release notes for version ${version}.`,
+    #         draft: false,
+    #         prerelease: false
+    #       });
+    #       await github.rest.repos.uploadReleaseAsset({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         release_id: release.data.id,
+    #         name: `LazyFramework.DX-${version}.nupkg`,
+    #         data: require('fs').createReadStream(packagePath)
+    #       });

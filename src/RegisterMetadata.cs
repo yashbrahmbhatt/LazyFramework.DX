@@ -1,5 +1,6 @@
-﻿using System;
-using System.Activities.Presentation.Metadata;
+﻿extern alias SAM;
+using System;
+using SAM.System.Activities.Presentation.Metadata;
 using System.Diagnostics;
 using UiPath.Studio.Activities.Api;
 

@@ -45,6 +45,7 @@ jobs:
   # Publish job
   publish:
     runs-on: windows-latest
+    needs: build-and-pack
     
     steps:
     - name: Download a Build Artifact

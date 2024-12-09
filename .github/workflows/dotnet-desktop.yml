@@ -28,8 +28,10 @@ jobs:
       run: dotnet build src/LazyFramework.DX.csproj --configuration Release
 
     # Create the NuGet package
-    - name: Pack NuGet package
-      run: dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts
+    - name: Pack NuGet package (without UiPath.Activities.Api)
+      run: |
+        echo "Packing the NuGet package without UiPath.Activities.Api..."
+        dotnet pack src/LazyFramework.DX.csproj --configuration Release --output ./artifacts /p:PackStage=true
 
     # Capture the .nupkg file path
     - name: Get .nupkg file path

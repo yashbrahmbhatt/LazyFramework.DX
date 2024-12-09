@@ -50,30 +50,30 @@ jobs:
         dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.TOKEN_GITHUB }} --source "https://nuget.pkg.github.com/yashbrahmbhatt/index.json"
 
     # Create GitHub Release using GitHub Script
-    - name: Create GitHub Release
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const packagePath = process.env.PACKAGE_PATH;
-          const version = packagePath.replace("LazyFramework.DX.","");
-          
-          // Ensure that github context is properly initialized
-          const release = await github.rest.repos.createRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag_name: `v${version}`,
-            name: `Release v${version}`,
-            body: `Release notes for version ${version}.`,
-            draft: false,
-            prerelease: false
-          });
-
-          // Upload the .nupkg file as an asset to the release
-          await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: release.data.id,
-            name: `LazyFramework.DX-${version}.nupkg`,
-            data: require('fs').createReadStream(packagePath)
-          });
+   # - name: Create GitHub Release
+   #   uses: actions/github-script@v7
+   #   with:
+   #     script: |
+   #       const packagePath = process.env.PACKAGE_PATH;
+   #       const version = packagePath.replace("LazyFramework.DX.","");
+   #       
+   #       // Ensure that github context is properly initialized
+   #       const release = await github.rest.repos.createRelease({
+   #        owner: context.repo.owner,
+   #        repo: context.repo.repo,
+   #        tag_name: `v${version}`,
+   #        name: `Release v${version}`,
+   #        body: `Release notes for version ${version}.`,
+   #        draft: false,
+   #        prerelease: false
+   #      });
+#
+#          // Upload the .nupkg file as an asset to the release
+#          await github.rest.repos.uploadReleaseAsset({
+#            owner: context.repo.owner,
+#           repo: context.repo.repo,
+#            release_id: release.data.id,
+#            name: `LazyFramework.DX-${version}.nupkg`,
+#            data: require('fs').createReadStream(packagePath)
+#          });
 

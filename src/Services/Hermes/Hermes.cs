@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -26,6 +28,17 @@ namespace LazyFramework.DX.Services.Hermes
         {
             _api = api;           
             InitializeWindow();
+            // Get the assembly that contains the resource
+            var assembly = Assembly.GetExecutingAssembly();
+
+            // Get all resources embedded in the assembly
+            var resourceNames = assembly.GetManifestResourceNames();
+
+            // Print all available resources to see if your icon is listed
+            foreach (var resourceName in resourceNames)
+            {
+                Log(resourceName, "Hermes", LogLevel.Debug);
+            }
             Log("Hermes initialized.", "Hermes", LogLevel.Info);
         }
         public override string ToString()

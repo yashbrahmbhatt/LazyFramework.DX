@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using System.Activities;
+using System.Windows.Media.Imaging;
+using LazyFramework.DX.Icons;
 
 namespace LazyFramework.DX.Services.Hermes
 {
@@ -28,6 +30,9 @@ namespace LazyFramework.DX.Services.Hermes
             try
             {
                 _hermes = hermes;
+                //Log($"HERE: {JsonConvert.SerializeObject(Application.Current.Resources, Formatting.Indented, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
+                //Helpers.WriteIconToFile("LazyFramework.DX.Icons.Hermes.jpg");
+
                 var hermesWizard = new WizardDefinition()
                 {
                     // You can add other definitions here to create a dropdown.
@@ -38,9 +43,10 @@ namespace LazyFramework.DX.Services.Hermes
                     },
                     DisplayName = "Hermes",
                     Shortcut = new KeyGesture(Key.F9, ModifierKeys.Control | ModifierKeys.Shift),
-                    IconUri = "Icons/Hermes.jpg",
+                    IconUri = "Icons/RecordIcon",
                     Tooltip = "Open the window for Hermes, letting you see the logs for the LazyFramework.DX modules."
                 };
+
                 var collection = new WizardCollection(); //Use a collection to group all of your wizards.
                 collection.WizardDefinitions.Add(hermesWizard);
 
@@ -57,6 +63,7 @@ namespace LazyFramework.DX.Services.Hermes
             {
 
                 Log("Running wizard", LogLevel.Debug);
+
                 _hermes.InitializeWindow();
                 _hermes.ShowWindow();
             }

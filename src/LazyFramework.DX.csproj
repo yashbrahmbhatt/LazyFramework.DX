@@ -16,7 +16,19 @@
 		<Authors>Yash Brahmbhatt</Authors>
 		<Description>Leveraging UiPath's Studio API SDK to create a new vehicle for delivering Design-Time tools to help with the developer experience in UiPath Studio.</Description>
 		<Tags>UiPath,LazyFramework,DX,Developer,Design</Tags>
+		<RootNamespace>LazyFramework.DX</RootNamespace>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="WorkflowAnalyzer\**" />
+	  <EmbeddedResource Remove="WorkflowAnalyzer\**" />
+	  <None Remove="WorkflowAnalyzer\**" />
+	  <Page Remove="WorkflowAnalyzer\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Icons\Hermes.jpg" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="Models\WorkflowEditor\WorkflowEditor.cs" />
@@ -39,7 +51,9 @@
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="WorkflowAnalyzer\" />
+	  <Resource Include="Icons\Hermes.jpg">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	</ItemGroup>
 
 </Project>

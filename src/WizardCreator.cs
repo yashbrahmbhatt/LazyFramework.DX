@@ -74,7 +74,7 @@ namespace LazyFramework
         {
             InitializeServices(workflowDesignApi);
             Wizard.CreateWizard(workflowDesignApi, _hermes);
-            Log(JsonConvert.SerializeObject(Application.Current.MainWindow, Formatting.Indented, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore}));
+            //Log(JsonConvert.SerializeObject(Application.Current.MainWindow, Formatting.Indented, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore}));
         }
 
     }

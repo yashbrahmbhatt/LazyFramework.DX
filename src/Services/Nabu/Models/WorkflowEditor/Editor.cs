@@ -59,19 +59,14 @@ namespace LazyFramework.DX.Services.Nabu.WorkflowEditor
 
         public async void Load()
         {
-            Log("Loading workflow...");
+            Log($"Loading workflow '{Path}'");
             Namespaces = GetAllNamespaces();
-            Log("Namespaces loaded.");
             References = GetAllReferences();
-            Log("References loaded.");
             Expressions = GetAllExpressions();
-            Log("Expressions loaded.");
             Variables = GetAllVariables();
-            Log("Variables loaded.");
             Activities = GetAllActivities();
-            Log("Activities loaded.");
             Arguments = GetAllArguments();
-            Log("Arguments loaded.");
+            Log($"Workflow loaded with {Activities.Count} activities, {Variables.Count} variables, {Arguments.Count} arguments, and {Expressions.Count} expressions.");
         }
 
         public void Save(string path)

@@ -12,7 +12,7 @@ namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
     public static class AutoDoc
     {
 
-        public static void DocumentProject(Settings settings, Hermes.Hermes hermes)
+        public async static void DocumentProject(Settings settings, Hermes.Hermes hermes)
         {
             var editors = Directory.GetFiles(settings.ProjectRoot, "*.xaml", SearchOption.AllDirectories)
                 .Where(f =>
@@ -21,7 +21,9 @@ namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
                         d => Path.GetRelativePath(Directory.GetCurrentDirectory(), f).ToLower().StartsWith(d.ToLower())
                     ) :
                     true
-                ).Select(f => new AutoDocEditor(f, hermes));
+                )
+                .Distinct()
+                .Select(f => new AutoDocEditor(f, hermes));
 
             Project projectJson = new Project(Path.Combine(settings.ProjectRoot, "project.json"));
             string workflowTemplatePath = Path.Combine(settings.TemplatesRoot, "Workflow.md");

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using LazyFramework.Models.WorkflowEditor;
+using LazyFramework.DX.Services.Nabu.WorkflowEditor;
 
-namespace LazyFramework.Models.WorkflowEditor.Primitives
+namespace LazyFramework.DX.Services.Nabu.WorkflowEditor.Primitives
 {
     public class References
     {

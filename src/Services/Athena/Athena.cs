@@ -130,7 +130,7 @@ namespace LazyFramework.DX.Services.Athena
                 var ask = MessageBox.Show($"Config file renamed to {e.FullPath}. Would you like to update the setting?", "Athena", MessageBoxButton.YesNo);
                 if (ask == MessageBoxResult.Yes)
                 {
-                    settings.ConfigFilePath = DX.Models.Helpers.PathExtensions.GetRelativePath(projectPath, e.FullPath);
+                    settings.ConfigFilePath = DX.Helpers.PathExtensions.GetRelativePath(projectPath, e.FullPath);
                     UpdateConfigClasses();
                 }
                 else CheckConfigExists();

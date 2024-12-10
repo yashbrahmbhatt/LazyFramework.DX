@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LazyFramework.Models.WorkflowEditor
+namespace LazyFramework.DX.Services.Nabu.WorkflowEditor
 {
     public static class LocalName
     {

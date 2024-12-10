@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace LazyFramework.DX.Models.WorkflowEditor.Primitives
+namespace LazyFramework.DX.Services.Nabu.WorkflowEditor.Primitives
 {
     public class Namespace
     {

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net6.0-windows;net7.0-windows;net8.0-windows</TargetFrameworks>
+		<TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
@@ -31,7 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="Models\WorkflowEditor\WorkflowEditor.cs" />
+		<None Include="Services\Nabu\Models\WorkflowEditor\Editor.cs" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
 		<Reference Include="System.Activities" />

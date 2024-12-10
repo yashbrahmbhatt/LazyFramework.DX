@@ -31,7 +31,7 @@ namespace LazyFramework.DX.Services.Nabu
             _api = provider.GetService<IWorkflowDesignApi>() ?? throw new Exception("IWorkflowDesign is not initalized");
             _projectPath = _api.ProjectPropertiesService.GetProjectDirectory();
 
-            LoadWorkflows();
+            //LoadWorkflows();
             WriteDefaultTemplates();
             AutoDoc.DocumentProject(new Settings()
             {

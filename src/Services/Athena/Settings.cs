@@ -128,7 +128,7 @@ namespace LazyFramework.DX.Services.Athena
             if(char.IsDigit(projectName[0]))     
                 projectName = "_" + projectName;
             
-            OutputNamespaceSetting.DefaultValue = projectName + ".ConfigClasses";
+            OutputNamespaceSetting.DefaultValue = projectName + ".Models";
             var settingsApi = api.Settings;
             settingsApi.AddSection(root, this);
             settingsApi.AddSetting(this, ConfigFilePathSetting);

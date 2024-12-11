@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using LazyFramework.DX.Helpers;
 
-namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
+namespace LazyFramework.DX.Services.Nabu.Models
 {
     public class Project
     {
@@ -35,7 +35,7 @@ namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
             JObject jObj = JObject.Parse(raw);
             Name = jObj["name"].Value<string>();
             Description = jObj["description"].Value<string>();
-            IEnumerable<Object[]> dependencyArrays = jObj["dependencies"].Children<JProperty>()
+            IEnumerable<object[]> dependencyArrays = jObj["dependencies"].Children<JProperty>()
                 .Select(c => new object[2]{
                         c.Name,
                         c.Value.ToString().Trim(new char[2]{'[', ']'})

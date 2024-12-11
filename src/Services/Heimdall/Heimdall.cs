@@ -28,7 +28,7 @@ namespace LazyFramework.DX.Services.Heimdall
                 Log($"Directory not found: {directoryPath}", LogLevel.Error);
                 throw new DirectoryNotFoundException($"Directory not found: {directoryPath}");
             }
-
+            Log(string.Join("\n",_settings.FilesToIgnore), LogLevel.Error);
             _fileWatcher = new FileSystemWatcher(directoryPath)
             {
                 NotifyFilter = NotifyFilters.FileName |
@@ -76,7 +76,6 @@ namespace LazyFramework.DX.Services.Heimdall
             {
                 var fileType = GetFileType(filePath);
                 var eventType = WatcherChangeTypes.Created;
-                Log($"{filePath}, {fileType}");
                 switch (fileType)
                 {
                     case FileType.XamlFile:
@@ -116,7 +115,7 @@ namespace LazyFramework.DX.Services.Heimdall
         {
             var filePath = e.FullPath;
             if (_settings.FilesToIgnore.Contains(filePath)) { 
-                Log($"Ignoring file {filePath}", LogLevel.Debug);
+                //Log($"Ignoring file {filePath}", LogLevel.Debug);
                 return;
             }
             var fileType = GetFileType(e.FullPath);

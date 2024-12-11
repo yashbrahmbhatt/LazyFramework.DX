@@ -186,7 +186,7 @@ namespace LazyFramework.DX.Services.Athena
             #if (NET6_0_OR_GREATER)
             await System.IO.File.WriteAllTextAsync(Path.Combine(_outputRoot, "DictionaryClass.cs"), sb.ToString());
             #else
-            System.IO.File.WriteAllText(Path.Combine(_outputRoot, "BaseConfig.cs"), sb.ToString());
+            System.IO.File.WriteAllText(Path.Combine(_outputRoot, "DictionaryClass.cs"), sb.ToString());
             #endif
         }
 

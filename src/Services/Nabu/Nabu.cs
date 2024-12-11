@@ -10,13 +10,13 @@ using Newtonsoft.Json;
 using UiPath.Studio.Activities.Api;
 using UiPath.Studio.Activities.Api.Analyzer.Rules;
 using LazyFramework.DX.Services.Nabu.WorkflowEditor;
-using LazyFramework.DX.Services.Nabu.Models.AutoDoc;
 using System.IO;
 using System.Data;
 using LazyFramework.DX.Services.Odin;
 using LazyFramework.DX.Models;
 using LazyFramework.DX.Models.Consumers;
 using LazyFramework.DX.Services.Heimdall;
+using LazyFramework.DX.Services.Nabu.Models;
 
 namespace LazyFramework.DX.Services.Nabu
 {

@@ -64,9 +64,9 @@ namespace LazyFramework.DX.Services.Odin
 
         public async Task Notify<TEvent>(TEvent eventArgs)
         {
-            Log($"Notifying event {typeof(TEvent).Name}", LogLevel.Debug);
             if (_handlers.TryGetValue(typeof(TEvent), out var handlers))
             {
+            Log($"Notifying event {typeof(TEvent).Name}", LogLevel.Debug);
                 foreach (var handler in handlers.Cast<Action<TEvent>>())
                 {
                     handler.Invoke(eventArgs);

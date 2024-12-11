@@ -19,6 +19,13 @@
 		<RootNamespace>LazyFramework.DX</RootNamespace>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
+	  <EmbeddedResource Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
+	  <None Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
+	  <Page Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
+	</ItemGroup>
+
 
 
 	<ItemGroup>
@@ -52,9 +59,6 @@
 	  <Resource Include="Icons\Hermes.jpg">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Resource>
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Services\Nabu\Models\WorkflowEditorV2\" />
 	</ItemGroup>
 
 </Project>

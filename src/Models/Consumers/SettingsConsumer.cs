@@ -19,7 +19,7 @@ namespace LazyFramework.DX.Models.Consumers
             var success = _api.Settings.TryGetValue<T>(key, out var value);
             if(success)
             {
-                Log($"Setting {key} has value {value}");
+                //Log($"Setting {key} has value {value}");
             }
             else
             {

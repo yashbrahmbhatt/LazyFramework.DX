@@ -53,5 +53,8 @@
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Resource>
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Services\Nabu\Models\WorkflowEditorV2\" />
+	</ItemGroup>
 
 </Project>

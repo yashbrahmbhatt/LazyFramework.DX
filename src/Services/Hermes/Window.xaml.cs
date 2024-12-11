@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using UiPath.Studio.Api.Theme;
 
 namespace LazyFramework.DX.Services.Hermes
@@ -32,7 +33,7 @@ namespace LazyFramework.DX.Services.Hermes
             AddContext("Hermes.Window");
 
             InitializeComponent();
-
+            this.Icon = new BitmapImage(new Uri($"pack://application:,,,/LazyFramework.DX;component/Icons/" + (_theme == (int)ThemeType.Light ? "Hermes" : "Hermes_Contrast") + ".jpg", UriKind.Absolute));
             PopulateContextComboBox();
             PopulateLogLevelComboBox();
 

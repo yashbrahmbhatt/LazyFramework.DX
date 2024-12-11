@@ -10,26 +10,26 @@ namespace LazyFramework.DX.Services.Nabu.WorkflowEditor.Primitives
 {
     public class Namespaces
     {
-        private List<XElement> NamespacesElementList => Document.Root.Descendants().First(e => e.Name.LocalName == LocalName.Namespaces).Descendants().Where(d => d.Name.LocalName.ToString() == "String").ToList();
-        public List<string> Values
+        private List<XElement>? NamespacesElementList => Document.Root?.Descendants().First(e => e.Name.LocalName == LocalName.Namespaces).Descendants().Where(d => d.Name.LocalName.ToString() == "String").ToList();
+        public List<string>? Values
         {
             get
             {
-                return NamespacesElementList.Select(r => r.Value).ToList();
+                return NamespacesElementList?.Select(r => r.Value).ToList();
             }
             set
             {
                 if (value != null)
                 {
-                    var ReferenceParent = Document.Root.Elements().First();
-                    ReferenceParent.RemoveNodes();
+                    var ReferenceParent = Document.Root?.Elements().First();
+                    ReferenceParent?.RemoveNodes();
                     foreach (var namespaceVal in value)
                     {
                         var newElement = new XElement(
                             NamespaceNames.X + "String",
                             namespaceVal
                         );
-                        ReferenceParent.Add(newElement);
+                        ReferenceParent?.Add(newElement);
                     }
                 }
             }

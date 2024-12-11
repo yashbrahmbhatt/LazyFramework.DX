@@ -17,128 +17,131 @@ using File = System.IO.File;
 
 
 using LazyFramework.DX.Services.Athena.Models;
+using LazyFramework.DX.Models.Consumers;
+using LazyFramework.DX.Services.Heimdall;
+using LazyFramework.DX.Services.Nabu;
+using UiPath.Studio.Activities.Api.ProjectProperties;
+using System.Text.RegularExpressions;
 
 namespace LazyFramework.DX.Services.Athena
 {
-    public class Athena : IOdinSubscriber
+    public class Athena : OdinConsumer
     {
-        private static Odin.Odin odin;
-        private static Hermes.Hermes _hermes;
-        private static async void Log(string message, LogLevel level = LogLevel.Info) => _hermes.Log(message, "Athena", level);
-        private Action<string, LogLevel> LogAction = (s, l) => Log(s, l);
-        private Settings settings;
-        private string projectPath;
-        private string outputRoot;
-        private string configFilePath;
-        private List<ConfigObject> configObjects = new List<ConfigObject>();
-
-        private SettingsObserver settingsObserver = new SettingsObserver();
+        private AthenaSettings _settings;
+        private string _projectPath;
+        private string _outputRoot;
+        private string _configFilePath;
+        private List<ConfigObject> _configObjects = new List<ConfigObject>();
+        private Nabu.Nabu _nabu;
 
 
-        public Athena(IServiceProvider provider)
+
+        public Athena(IWorkflowDesignApi api, Hermes.Hermes hermes, Odin.Odin odin) : base(api, hermes, odin, "Athena")
         {
-            _hermes = provider.GetService<Hermes.Hermes>() ?? throw new Exception("Hermes service doesn't exist.");
             Log("Initializing Athena.");
-            odin = provider.GetService<Odin.Odin>() ?? throw new Exception("Odin service doesn't exist.");
-            odin.Subscribe(this);
-            Log("Odin service subscribed.");
-            var api = provider.GetService<IWorkflowDesignApi>() ?? throw new Exception("IWorkflowDesign service doesn't exist.");
+            _settings = new AthenaSettings(_api, _hermes);
+            _projectPath = api.ProjectPropertiesService.GetProjectDirectory();
+            //if(_settings.OutputPath == null) _settings.OutputPath = "ConfigClasses";
+            //if(_settings.ConfigFilePath == null) _settings.ConfigFilePath = "Data\\Config.xlsx";
+            //if (_settings.OutputNamespace == null) _settings.OutputNamespace = api.ProjectPropertiesService.GetProjectName() + ".ConfigClasses";
+            //if(_settings.ConfigFileType == null) _settings.ConfigFileType = ConfigFileType.Excel.Value;
 
-            settings = new Settings(api);
-            Log("Settings initialized.");
-            projectPath = api.ProjectPropertiesService.GetProjectDirectory();
-            outputRoot = Path.Combine(projectPath, settings.OutputPath);
-            configFilePath = Path.Combine(projectPath, settings.ConfigFilePath);
-            var configExists = CheckConfigExists();
+            _outputRoot = Path.Combine(_projectPath, _settings.OutputPath);
+            _configFilePath = Path.Combine(_projectPath, _settings.ConfigFilePath);
+            var configExists = CheckConfigExists().Result;
             if (configExists)
             {
-                Log($"Config file path initialized to '{configFilePath}'.");
+                Log($"Config file path initialized to '{_configFilePath}'.");
                 UpdateConfigClasses();
             }
-            CreateBaseClassFile(settings.OutputNamespace);
-            api.Settings.RegisterValueChangedObserver(settingsObserver);
-            settingsObserver.ValueChanged += OnSettingChanged;
+            _odin.Register<SettingChangedEvent>(async (e) => await OnSettingChanged(e));
+            switch(_settings.ConfigFileType)
+            {
+                case "Json":
+                    Log("Config file type set to JSON.");
+                    _odin.Register<JsonFileEvent>(async (e) => await OnFileEvent(e));
+                    break;
+                case "Excel":
+                    Log("Config file type set to Excel.");
+                    _odin.Register<ExcelFileEvent>(async (e) => await OnFileEvent(e));
+                    break;
+                default:
+                    Log("Unsupported config file type.");
+                    break;
+            }
+            WriteBaseClass(_settings.OutputNamespace);
             Log("Athena initialized.");
         }
-
-        public async void UpdateConfigClasses()
+        public async Task UpdateConfigClasses()
         {
-            configObjects = new List<ConfigObject>();
+            _configObjects = new List<ConfigObject>();
             await ReadConfigFile();
-            foreach (var configObject in configObjects)
+            foreach (var configObject in _configObjects)
             {
-                WriteConfig(Path.Combine(outputRoot, configObject.ClassName + ".cs"), configObject);
+                await WriteConfig(Path.Combine(_outputRoot, configObject.ClassName + ".cs"), configObject);
             }
         }
 
-        public bool CheckConfigExists()
+        public async Task<bool> CheckConfigExists()
         {
-            var exists = System.IO.File.Exists(configFilePath);
+            var exists = System.IO.File.Exists(_configFilePath);
             if (!exists)
             {
-                Log($"Could not find config file with path '{configFilePath}'. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
+                Log($"Could not find config file with path '{_configFilePath}'. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
 
             }
             return exists;
         }
 
-        public void OnSettingChanged(SettingsValueChangedArgs e)
+        public async Task OnSettingChanged(SettingChangedEvent e)
         {
-            Log($"Setting changed: {e.ChangedSettings}");
-            if (e.ChangedSettings.Contains(SettingKeys.ConfigFilePathSettingKey))
+            if (SettingsCreator.GetAllSettingKeysForClass(typeof(AthenaSettingKeys)).Contains(e.Key))
             {
-                configFilePath = Path.Combine(projectPath, settings.ConfigFilePath);
-                Log($"Config file path updated to '{configFilePath}'.");
-                var exists = CheckConfigExists();
+                Log($"Athena settings changed: {e.Key}");
+                _configFilePath = Path.Combine(_projectPath, _settings.ConfigFilePath);
+                Log($"Config file path updated to '{_configFilePath}'.");
+                var exists = await CheckConfigExists();
                 if (exists)
                 {
-                    UpdateConfigClasses();
+                    await WriteBaseClass(_settings.OutputNamespace);
+                    await UpdateConfigClasses();
                 }
             }
         }
 
-        public bool IsInterestedIn(string filePath)
+        public async Task OnFileEvent(FileEvent e)
         {
-            return filePath.ToLower().Trim() == configFilePath.ToLower().Trim();
-        }
+            var path = e.Path;
+            var type = e.EventType;
+            if (path != _configFilePath) return;
 
-        public void OnFileSystemEvent(FileSystemEventArgs e, EventType eventType)
-        {
-            Log($"{eventType.ToString()} : {e.FullPath}", LogLevel.Info);
-            var exists = CheckConfigExists();
-            if (!exists) return;
-            if (e.FullPath == configFilePath)
+            Log($"Config file {type} event detected.");
+            if (type == WatcherChangeTypes.Deleted)
             {
-                Log($"Config file {eventType.ToString()} event detected.");
-                if (eventType == EventType.Deleted)
-                {
-                    Log($"Config file deleted. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
-                }
-                else
-                {
-                    UpdateConfigClasses();
-                }
+                Log("Config file deleted. Please update the Config File Path setting under Athena in the project settings.", LogLevel.Error);
+                _configObjects = new List<ConfigObject>();
             }
-        }
-
-        // Notify for renamed events
-        public void OnRenamedEvent(RenamedEventArgs e)
-        {
-            if (e.OldFullPath == configFilePath)
+            else if (type == WatcherChangeTypes.Renamed)
             {
-                Log($"Config file renamed to {e.FullPath}.");
-                var ask = MessageBox.Show($"Config file renamed to {e.FullPath}. Would you like to update the setting?", "Athena", MessageBoxButton.YesNo);
-                if (ask == MessageBoxResult.Yes)
+                if(e.OldPath == null)
                 {
-                    settings.ConfigFilePath = DX.Helpers.PathExtensions.GetRelativePath(projectPath, e.FullPath);
-                    UpdateConfigClasses();
+                    Log("Config file renamed, but no old path supplied in event args.", LogLevel.Error);
+                    return;
                 }
-                else CheckConfigExists();
-
+                if (e.OldPath == _configFilePath)
+                {
+                    Log($"Config file renamed to {e.Path}. Updating setting...");
+                    _settings.ConfigFilePath = Helpers.PathExtensions.GetRelativePath(_projectPath, e.Path);
+                }
             }
+            else
+            {
+                await UpdateConfigClasses();
+            }
+
         }
 
-        public async void CreateBaseClassFile(string ns)
+        public async Task WriteBaseClass(string ns)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"using System;");
@@ -174,26 +177,30 @@ namespace LazyFramework.DX.Services.Athena
             sb.AppendLine($"\t\t}}"); // close
             sb.AppendLine($"\t}}"); // close
             sb.AppendLine($"}}"); // close
-            if (!Directory.Exists(outputRoot))
+            if (!Directory.Exists(_outputRoot))
             {
-                Directory.CreateDirectory(outputRoot);
+                Directory.CreateDirectory(_outputRoot);
             }
-            System.IO.File.WriteAllText(Path.Combine(outputRoot, "BaseConfig.cs"), sb.ToString());
+            #if (NET6_0_OR_GREATER)
+            await System.IO.File.WriteAllTextAsync(Path.Combine(_outputRoot, "BaseConfig.cs"), sb.ToString());
+            #else
+            System.IO.File.WriteAllText(Path.Combine(_outputRoot, "BaseConfig.cs"), sb.ToString());
+            #endif
         }
 
         public async Task ReadConfigFile()
         {
-            var exists = CheckConfigExists();
+            var exists = await CheckConfigExists();
             if (!exists) return;
 
-            Log($"Reading config file: {configFilePath}");
+            Log($"Reading config file: {_configFilePath}");
 
             try
             {
-                if (settings.ConfigFileType == ConfigFileType.Json.Value)
+                if (_settings.ConfigFileType == ConfigFileType.Json.Value)
                 {
                     // Read the JSON file
-                    string json = System.IO.File.ReadAllText(configFilePath);
+                    string json = System.IO.File.ReadAllText(_configFilePath);
                     var configObject = JsonConvert.DeserializeObject<ConfigObject>(json);
 
                     if (configObject == null)
@@ -208,18 +215,23 @@ namespace LazyFramework.DX.Services.Athena
                         return;
                     }
                 }
-                else if (settings.ConfigFileType == ConfigFileType.Excel.Value)
+                else if (_settings.ConfigFileType == ConfigFileType.Excel.Value)
                 {
                     // Read and process the Excel file
-                    var dataSet = await ExcelHandler.ReadExcelConfigFile(configFilePath, (s, l) => Log(s, l));
-                    var configObject = new ConfigObject("", dataSet, LogAction);
+                    var dataSet = await ExcelHandler.ReadExcelConfigFile(_configFilePath, async (s, l) => Log(s, l));
+                    if(dataSet == null)
+                    {
+                        Log("Failed to read excel file.", LogLevel.Error);
+                        return;
+                    }
+                    var configObject = new ConfigObject("", dataSet, async (s, l) => Log(s, l));
                     configObject.ClassName = "Config";
-                    configObjects.Add(configObject);
+                    _configObjects.Add(configObject);
                     Log($"Excel file processed. Found {configObject.Settings.Count} settings, {configObject.Assets.Count} assets, {configObject.TextFiles.Count} text files, and {configObject.ExcelFiles.Count} excel files.", LogLevel.Debug);
                 }
                 else
                 {
-                    Log($"Unsupported config file type: {settings.ConfigFileType}", LogLevel.Error);
+                    Log($"Unsupported config file type: {_settings.ConfigFileType}", LogLevel.Error);
                 }
             }
             catch (Exception ex)
@@ -228,21 +240,24 @@ namespace LazyFramework.DX.Services.Athena
             }
         }
 
-        public async void WriteConfig(string path, ConfigObject configObject)
+        public async Task WriteConfig(string path, ConfigObject configObject)
         {
-
-            var classString = configObject.GetClassString(settings.OutputNamespace);
-            if (!Directory.Exists(Path.GetDirectoryName(path)))
+            var classString = configObject.GetClassString(_settings.OutputNamespace);
+            var folder = Path.GetDirectoryName(path);
+            if (folder == null)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                Log($"Failed to get folder for path: {path}", LogLevel.Error);
+                return;
             }
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+#if (NET6_0_OR_GREATER)
+            await System.IO.File.WriteAllTextAsync(path, classString);
+#else
             System.IO.File.WriteAllText(path, classString);
-        }
-
-
-
-        public void OnDisposed()
-        {
+#endif
         }
     }
 }

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
+		<TargetFrameworks>net6.0-windows;net7.0-windows;net8.0-windows;net461</TargetFrameworks>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
@@ -19,12 +19,7 @@
 		<RootNamespace>LazyFramework.DX</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <Compile Remove="WorkflowAnalyzer\**" />
-	  <EmbeddedResource Remove="WorkflowAnalyzer\**" />
-	  <None Remove="WorkflowAnalyzer\**" />
-	  <Page Remove="WorkflowAnalyzer\**" />
-	</ItemGroup>
+
 
 	<ItemGroup>
 	  <None Remove="Icons\Hermes.jpg" />
@@ -33,7 +28,7 @@
 	<ItemGroup>
 		<None Include="Services\Nabu\Models\WorkflowEditor\Editor.cs" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<Reference Include="System.Activities" />
 		<Reference Include="System.Activities.Core.Presentation" />
 		<Reference Include="System.Activities.Presentation" />
@@ -42,7 +37,7 @@
 		<PackageReference Include="EPPlus" Version="7.5.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Condition="'$(TargetFramework)' != 'net481'" Include="System.Activities.Metadata" Version="6.0.0-20231204.1">
+		<PackageReference Condition="'$(TargetFramework)' != 'net461'" Include="System.Activities.Metadata" Version="6.0.0-20231204.1">
 			<Aliases>SAM</Aliases>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -51,6 +46,9 @@
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
+	  <Resource Include="Icons\Hermes_Contrast.jpg">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	  <Resource Include="Icons\Hermes.jpg">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Resource>

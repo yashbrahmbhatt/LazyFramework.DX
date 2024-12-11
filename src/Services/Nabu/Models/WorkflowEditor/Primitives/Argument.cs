@@ -11,11 +11,11 @@ namespace LazyFramework.DX.Services.Nabu.WorkflowEditor.Primitives
     public class Argument
     {
         public string Class { get; private set; }
-        public string Name
+        public string? Name
         {
             get
             {
-                return XDocumentHelpers.GetAttribute(PropertyElement, LocalName.ArgumentDefinitionName).Value;
+                return XDocumentHelpers.GetAttribute(PropertyElement, LocalName.ArgumentDefinitionName)?.Value;
             }
         }
         public string? Description

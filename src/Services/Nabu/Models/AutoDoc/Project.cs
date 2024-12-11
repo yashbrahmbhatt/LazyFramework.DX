@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using LazyFramework.DX.Helpers;
 
 namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
 {
@@ -42,7 +43,7 @@ namespace LazyFramework.DX.Services.Nabu.Models.AutoDoc
             Type = jObj["designOptions"].Value<string>("outputType");
             FileInfoCollection = JsonConvert.DeserializeObject<DataTable>(JsonConvert.SerializeObject(jObj["designOptions"]["fileInfoCollection"]));
             var entries = jObj["entryPoints"].Children<JObject>().Select(c => Path.Combine(Directory.GetCurrentDirectory(), c.Value<string>("filePath")));
-            foreach (var entry in entries) EntryPoints.Rows.Add(new object[1] { Path.GetRelativePath(Directory.GetCurrentDirectory(), entry) });
+            foreach (var entry in entries) EntryPoints.Rows.Add(new object[1] { PathExtensions.GetRelativePath(Directory.GetCurrentDirectory(), entry) });
 
             Language = jObj["expressionLanguage"].Value<string>();
             ProjectVersion = jObj["projectVersion"].Value<string>();

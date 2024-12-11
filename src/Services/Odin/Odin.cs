@@ -8,128 +8,77 @@ using LazyFramework.DX.Services.Hermes;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using UiPath.Studio.Activities.Api;
+using LazyFramework.DX.Models;
+using LazyFramework.DX.Models.Consumers;
+using LazyFramework.DX.Services.Heimdall;
+using System.Threading.Tasks;
+using UiPath.Studio.Activities.Api.Settings;
 
 
 
 namespace LazyFramework.DX.Services.Odin
 {
-    public class Odin : IPublisherService, IDisposable
+    public class Odin : HermesConsumer, IMediator
     {
-        private IWorkflowDesignApi _api { get; set; }
-        private Settings _settings;
-        private readonly FileSystemWatcher _fileWatcher;
-        private readonly List<IOdinSubscriber> _subscribers;
-        private Hermes.Hermes _hermes;
-        private void Log(string message, LogLevel level = LogLevel.Info) => _hermes.Log(message, "Odin", level);
-        public Odin(IServiceProvider provider)
+        private readonly Dictionary<Type, List<Delegate>> _handlers = new Dictionary<Type, List<Delegate>>();
+        public Odin(IWorkflowDesignApi api, Hermes.Hermes hermes): base(api, hermes, "Odin")
         {
             try
             {
-                _hermes = provider.GetService<Hermes.Hermes>() ?? throw new Exception("Hermes service doesn't exist.");
-                _api = provider.GetService<IWorkflowDesignApi>() ?? throw new Exception("Workflow design api is not initialized.");
-                _settings = new Settings(_api);
                 Log("Initializing Odin."); // Error here 'No key exists for 'Hermes' ???????
-                _subscribers = new List<IOdinSubscriber>();
-                var folderPath = _api.ProjectPropertiesService.GetProjectDirectory();
-                if (!Directory.Exists(folderPath))
+                _api.Settings.RegisterValueChangedObserver(new UiPath.Studio.Activities.Api.Settings.SettingsObserver()
                 {
-                    Log($"Directory does not exist: {folderPath}", LogLevel.Error);
-                    throw new DirectoryNotFoundException($"Directory does not exist: {folderPath}");
-                }
-
-
-                _fileWatcher = new FileSystemWatcher
-                {
-                    Path = folderPath,
-                    NotifyFilter = NotifyFilters.FileName |
-                                   NotifyFilters.LastWrite |
-                                   NotifyFilters.CreationTime |
-                                   NotifyFilters.Size,
-                    Filter = "*.*",
-                    IncludeSubdirectories = true,
-                    EnableRaisingEvents = true
-                };
-
-                _fileWatcher.Changed += (s, e) => PublishEvent(e, EventType.Changed);
-                _fileWatcher.Created += (s, e) => PublishEvent(e, EventType.Created);
-                _fileWatcher.Deleted += (s, e) => PublishEvent(e, EventType.Deleted);
-                _fileWatcher.Renamed += (s, e) => PublishRenamedEvent(e);
-                Log("Odin initialized.");
-                Log($"Watching directory: {folderPath}", LogLevel.Info);
+                    Keys = SettingsCreator.GetAllSettingKeys(),
+                    ValueChanged = async (e) => await OnSettingChanges(e)
+                });
+                Log($"Odin intialized.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize Odin: {ex.Message}");
+                Log($"Failed to initialize Odin: {ex.Message}", LogLevel.Error);
                 throw;
 
             }
         }
 
-        public void Subscribe(IOdinSubscriber subscriber)
+        public async Task OnSettingChanges(SettingsValueChangedArgs e)
         {
-            if (subscriber != null && !_subscribers.Contains(subscriber))
+            Log($"{e.ChangedSettings.Count} settings changed.");
+            foreach (var setting in e.ChangedSettings)
             {
-                _subscribers.Add(subscriber);
-                Log($"Subscriber added: {subscriber.GetType().Name}", LogLevel.Info);
+                await Notify<SettingChangedEvent>(new SettingChangedEvent(setting));
             }
+            Log($"Settings change event handled.");
         }
 
-        public void Unsubscribe(IOdinSubscriber subscriber)
+        public async Task Register<TEvent>(Action<TEvent> handler)
         {
-            if (subscriber != null && _subscribers.Contains(subscriber))
+            Log($"Registering handler for event {typeof(TEvent).Name}");
+            if (!_handlers.ContainsKey(typeof(TEvent)))
             {
-                _subscribers.Remove(subscriber);
-                Log($"Subscriber removed: {subscriber.GetType().Name}", LogLevel.Info);
+                _handlers[typeof(TEvent)] = new List<Delegate>();
             }
+            _handlers[typeof(TEvent)].Add(handler);
+            Log($"Handler registered for event {typeof(TEvent).Name}");
         }
 
-        public void PublishEvent(FileSystemEventArgs e, EventType eventType)
+        public async Task Notify<TEvent>(TEvent eventArgs)
         {
-            if (!IsIgnored(e.FullPath))
+            Log($"Notifying event {typeof(TEvent).Name}", LogLevel.Debug);
+            if (_handlers.TryGetValue(typeof(TEvent), out var handlers))
             {
-                foreach (var subscriber in _subscribers)
+                foreach (var handler in handlers.Cast<Action<TEvent>>())
                 {
-                    if (subscriber.IsInterestedIn(e.FullPath))
-                    {
-                        subscriber.OnFileSystemEvent(e, eventType);
-                    }
+                    handler.Invoke(eventArgs);
                 }
+                Log($"Event {typeof(TEvent).Name} handled by {handlers.Count} handlers");
             }
-        }
-
-        public void PublishRenamedEvent(RenamedEventArgs e)
-        {
-            if (!IsIgnored(e.FullPath) && !IsIgnored(e.OldFullPath))
+            else
             {
-                foreach (var subscriber in _subscribers)
-                {
-                    if (subscriber.IsInterestedIn(e.FullPath) || subscriber.IsInterestedIn(e.OldFullPath))
-                    {
-                        subscriber.OnRenamedEvent(e);
-                    }
-                }
+                //Log($"No handlers registered for event {typeof(TEvent).Name}", LogLevel.Warning);
             }
+
         }
-
-        private bool IsIgnored(string filePath)
-        {
-            return _settings.FilesToIgnore.Any(ignorePath => filePath.StartsWith(ignorePath, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public void Dispose()
-        {
-            _fileWatcher?.Dispose();
-            foreach (var subscriber in _subscribers) subscriber.OnDisposed();
-            Log("File watcher service disposed.", LogLevel.Info);
-        }
-
-
-    }
-    public enum EventType
-    {
-        Created,
-        Deleted,
-        Changed
     }
 
 }

@@ -8,19 +8,17 @@ using UiPath.Studio.Activities.Api;
 using LazyFramework.Models;
 using System.Activities;
 using LazyFramework.DX.Services.Athena;
+using LazyFramework.DX.Models.Consumers;
 
 namespace LazyFramework.DX.Services.Athena
 {
-    public static class SettingKeys
+    public static class AthenaSettingKeys
     {
-        public static string RootKey = "LazyFramework.Athena";
-        public static string ConfigFileSectionKey = RootKey + ".ConfigFile";
-        public static string ConfigFilePathSettingKey = ConfigFileSectionKey + ".Path";
-        public static string ConfigFileTypeSettingKey = ConfigFileSectionKey + ".Type";
-        public static string OutputSectionKey = RootKey + ".Output";
-        public static string OutputPathSettingKey = OutputSectionKey + ".Path";
-        public static string OutputNamespaceSettingKey = OutputSectionKey + ".Namespace";
-        public static string MiscSectionKey = RootKey + ".Misc";
+        public static string AthenaSectionKey = SettingsCreator.RootKey + ".Athena";
+        public static string ConfigFilePathSettingKey = AthenaSectionKey + ".ConfigPath";
+        public static string ConfigFileTypeSettingKey = AthenaSectionKey + ".ConfigType";
+        public static string OutputPathSettingKey = AthenaSectionKey + ".OutputPath";
+        public static string OutputNamespaceSettingKey = AthenaSectionKey + ".Namespace";
     }
 
     public class ConfigFileType
@@ -28,91 +26,46 @@ namespace LazyFramework.DX.Services.Athena
         private ConfigFileType(string value) { Value = value; }
         public string Value { get; set; }
         public static ConfigFileType Excel { get { return new ConfigFileType("Excel"); } }
-        public static ConfigFileType Json
-        {
-            get
-            {
-                return new ConfigFileType("Json");
-            }
-        }
+        public static ConfigFileType Json  { get { return new ConfigFileType("Json");  } }
     }
     
 
-    public class Settings
+    public class AthenaSettings : SettingsConsumer
     {
-        private IWorkflowDesignApi Api;
         public string ConfigFilePath
         {
-            get
-            {
-                Api.Settings.TryGetValue<string>(SettingKeys.ConfigFilePathSettingKey, out var files);
-                return files;
-            }
-            set
-            {
-                Api.Settings.TrySetValue(SettingKeys.ConfigFilePathSettingKey, value);
-            }
+            get => GetSetting<string>(AthenaSettingKeys.ConfigFilePathSettingKey);
+            set => SetSetting(AthenaSettingKeys.ConfigFilePathSettingKey, value);
         }
         public string ConfigFileType
         {
-            get
-            {
-                Api.Settings.TryGetValue<string>(SettingKeys.ConfigFileTypeSettingKey, out var files);
-                return files;
-            }
-            set
-            {
-                Api.Settings.TrySetValue(SettingKeys.ConfigFileTypeSettingKey, value);
-            }
+            get => GetSetting<string>(AthenaSettingKeys.ConfigFileTypeSettingKey);
+            set => SetSetting(AthenaSettingKeys.ConfigFileTypeSettingKey, value);
         }
         public string OutputPath
         {
-            get
-            {
-                Api.Settings.TryGetValue<string>(SettingKeys.OutputPathSettingKey, out var files);
-                return files;
-            }
-            set
-            {
-                Api.Settings.TrySetValue(SettingKeys.OutputPathSettingKey, value);
-            }
+            get => GetSetting<string>(AthenaSettingKeys.OutputPathSettingKey);
+            set => SetSetting(AthenaSettingKeys.OutputPathSettingKey, value);
         }
         public string OutputNamespace
         {
-            get
-            {
-                Api.Settings.TryGetValue<string>(SettingKeys.OutputNamespaceSettingKey, out var files);
-                return files;
-            }
-            set
-            {
-                Api.Settings.TrySetValue(SettingKeys.OutputNamespaceSettingKey, value);
-            }
+            get => GetSetting<string>(AthenaSettingKeys.OutputNamespaceSettingKey);
+            set => SetSetting(AthenaSettingKeys.OutputNamespaceSettingKey, value);
         }
 
-        public Settings(IWorkflowDesignApi api)
+        public AthenaSettings(IWorkflowDesignApi api, Hermes.Hermes hermes) : base(api, hermes, "Athena.Settings")
         {
-            Api = api;
         }
     }
 
 
-    public class SettingsCategory : UiPath.Studio.Activities.Api.Settings.SettingsCategory
+    public class AthenaSettingsSection : SettingsSection
     {
-        public SettingsSection section = new SettingsSection()
-        {
-            RequiresPackageReload = true,
-            Key = SettingKeys.ConfigFileSectionKey,
-            Title = "Config File",
-            Description = "Settings related to the config file for Athena to watch",
-            IsDesignTime = true,
-            IsExpanded = true
-        };
         public SingleValueEditorDescription<string> ConfigFilePathSetting = new SingleValueEditorDescription<string>()
         {
             Label = "Path",
             Description = "The path to your config file.",
-            Key = SettingKeys.ConfigFilePathSettingKey,
+            Key = AthenaSettingKeys.ConfigFilePathSettingKey,
             DefaultValue = "Data\\Config.xlsx",
             GetDisplayValue = val => val,
             IsDesignTime = true,
@@ -125,7 +78,7 @@ namespace LazyFramework.DX.Services.Athena
         {
             Label = "Type",
             Description = "The type of config file you are using.",
-            Key = SettingKeys.ConfigFileTypeSettingKey,
+            Key = AthenaSettingKeys.ConfigFileTypeSettingKey,
             DefaultValue = ConfigFileType.Excel.Value,
             GetDisplayValue = val => val.ToString(),
             IsDesignTime = true,
@@ -134,21 +87,11 @@ namespace LazyFramework.DX.Services.Athena
             Values = new string[2]{ ConfigFileType.Excel.Value, ConfigFileType.Json.Value }
 
         };
-
-        public SettingsSection OutputSection = new SettingsSection()
-        {
-            RequiresPackageReload = true,
-            Key = SettingKeys.OutputSectionKey,
-            Title = "Output",
-            Description = "Settings related to the output of Athena",
-            IsDesignTime = true,
-            IsExpanded = true
-        };
         public SingleValueEditorDescription<string> OutputPathSetting = new SingleValueEditorDescription<string>()
         {
             Label = "Path",
             Description = "The path to output the generated classes.",
-            Key = SettingKeys.OutputPathSettingKey,
+            Key = AthenaSettingKeys.OutputPathSettingKey,
             DefaultValue = "ConfigClasses",
             GetDisplayValue = val => val,
             IsDesignTime = true,
@@ -159,7 +102,7 @@ namespace LazyFramework.DX.Services.Athena
         {
             Label = "Namespace",
             Description = "The namespace to use for the generated classes.",
-            Key = SettingKeys.OutputNamespaceSettingKey,
+            Key = AthenaSettingKeys.OutputNamespaceSettingKey,
             DefaultValue = "Generated",
             GetDisplayValue = val => val,
             IsDesignTime = true,
@@ -167,40 +110,27 @@ namespace LazyFramework.DX.Services.Athena
             IsReadOnly = false
         };
 
-        public SettingsSection MiscSection = new SettingsSection()
-        {
-            RequiresPackageReload = true,
-            Key = SettingKeys.MiscSectionKey,
-            Title = "Miscellaneous",
-            Description = "I'll organize these settings later.",
-            IsDesignTime = true,
-            IsExpanded = true
-
-        };
-
-        public SettingsCategory()
+        public AthenaSettingsSection()
         {
             RequiresPackageReload = false;
-            Key = SettingKeys.RootKey;
-            Header = "Athena";
+            Key = AthenaSettingKeys.AthenaSectionKey;
+            Title = "Athena";
             Description = "Athena brings order and wisdon to the chaos.\n\nThe Athena module automatically generates classes from your Excel or Json config files so that you don't have to rely on type-unsafe generics.";
             IsDesignTime = true;
-            IsHidden = false;
+            RequiresPackageReload = false;
+            IsExpanded = false;
 
         }
 
-        public void Initialize(IWorkflowDesignApi api)
+        public void Initialize(IWorkflowDesignApi api, SettingsCategory root)
         {
-            var settingsApi = api.Settings;
             OutputNamespaceSetting.DefaultValue = api.ProjectPropertiesService.GetProjectName() + ".ConfigClasses";
-            settingsApi.AddCategory(this);
-            settingsApi.AddSection(this, section);
-            settingsApi.AddSection(this, MiscSection);
-            settingsApi.AddSetting(section, ConfigFilePathSetting);
-            settingsApi.AddSetting(section, ConfigFileTypeSetting);
-            settingsApi.AddSection(this, OutputSection);
-            settingsApi.AddSetting(OutputSection, OutputPathSetting);
-            settingsApi.AddSetting(OutputSection, OutputNamespaceSetting);
+            var settingsApi = api.Settings;
+            settingsApi.AddSection(root, this);
+            settingsApi.AddSetting(this, ConfigFilePathSetting);
+            settingsApi.AddSetting(this, ConfigFileTypeSetting);
+            settingsApi.AddSetting(this, OutputPathSetting);
+            settingsApi.AddSetting(this, OutputNamespaceSetting);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace LazyFramework.DX.Services.Nabu.WorkflowEditor.Primitives
 
         public Namespace(XElement element)
         {
-
+            _element = element;
         }
     }
 }

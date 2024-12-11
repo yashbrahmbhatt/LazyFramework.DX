@@ -50,7 +50,7 @@ namespace LazyFramework.DX.Services.Athena
                 UpdateConfigClasses();
             }
             _odin.Register<SettingChangedEvent>(async (e) => await OnSettingChanged(e));
-            _odin.Register<WorkflowChangedEvent>(async (e) => await OnWorkflowEvent(e));
+            //_odin.Register<WorkflowChangedEvent>(async (e) => await OnWorkflowEvent(e));
             switch(_settings.ConfigFileType)
             {
                 case "Json":
@@ -73,7 +73,6 @@ namespace LazyFramework.DX.Services.Athena
         {
             var editor = e.Editor;
             var path = e.Path;
-            Log(JsonConvert.SerializeObject(editor.Activities));
         }
         public async Task UpdateConfigClasses()
         {

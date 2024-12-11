@@ -35,6 +35,8 @@ namespace LazyFramework.DX.Services.Hermes
         {
             InitializeWindow();
             _debounceTimer.Elapsed += OnDebounceElapsed;
+
+
             
             Log("Hermes initialized.", "Hermes", LogLevel.Info);
         }

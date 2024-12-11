@@ -41,11 +41,6 @@ namespace LazyFramework.DX.Services.Athena
             Log("Initializing Athena.");
             _settings = new AthenaSettings(_api, _hermes);
             _projectPath = api.ProjectPropertiesService.GetProjectDirectory();
-            //if(_settings.OutputPath == null) _settings.OutputPath = "ConfigClasses";
-            //if(_settings.ConfigFilePath == null) _settings.ConfigFilePath = "Data\\Config.xlsx";
-            //if (_settings.OutputNamespace == null) _settings.OutputNamespace = api.ProjectPropertiesService.GetProjectName() + ".ConfigClasses";
-            //if(_settings.ConfigFileType == null) _settings.ConfigFileType = ConfigFileType.Excel.Value;
-
             _outputRoot = Path.Combine(_projectPath, _settings.OutputPath);
             _configFilePath = Path.Combine(_projectPath, _settings.ConfigFilePath);
             var configExists = CheckConfigExists().Result;
@@ -55,6 +50,7 @@ namespace LazyFramework.DX.Services.Athena
                 UpdateConfigClasses();
             }
             _odin.Register<SettingChangedEvent>(async (e) => await OnSettingChanged(e));
+            _odin.Register<WorkflowChangedEvent>(async (e) => await OnWorkflowEvent(e));
             switch(_settings.ConfigFileType)
             {
                 case "Json":
@@ -71,6 +67,13 @@ namespace LazyFramework.DX.Services.Athena
             }
             WriteBaseClass(_settings.OutputNamespace);
             Log("Athena initialized.");
+        }
+
+        public async Task OnWorkflowEvent(WorkflowChangedEvent e)
+        {
+            var editor = e.Editor;
+            var path = e.Path;
+            Log(JsonConvert.SerializeObject(editor.Activities));
         }
         public async Task UpdateConfigClasses()
         {
@@ -148,7 +151,7 @@ namespace LazyFramework.DX.Services.Athena
             sb.AppendLine($"using System.Collections.Generic;");
             sb.AppendLine();
             sb.AppendLine($"namespace {ns} {{"); // open
-            sb.AppendLine($"\tpublic class BaseConfig {{"); // open
+            sb.AppendLine($"\tpublic class DictionaryClass {{"); // open
             sb.AppendLine($"\t\t// <summary>");
             sb.AppendLine($"\t\t// Base class for all config classes.");
             sb.AppendLine($"\t\t// </summary>");
@@ -182,7 +185,7 @@ namespace LazyFramework.DX.Services.Athena
                 Directory.CreateDirectory(_outputRoot);
             }
             #if (NET6_0_OR_GREATER)
-            await System.IO.File.WriteAllTextAsync(Path.Combine(_outputRoot, "BaseConfig.cs"), sb.ToString());
+            await System.IO.File.WriteAllTextAsync(Path.Combine(_outputRoot, "DictionaryClass.cs"), sb.ToString());
             #else
             System.IO.File.WriteAllText(Path.Combine(_outputRoot, "BaseConfig.cs"), sb.ToString());
             #endif
@@ -242,7 +245,7 @@ namespace LazyFramework.DX.Services.Athena
 
         public async Task WriteConfig(string path, ConfigObject configObject)
         {
-            var classString = configObject.GetClassString(_settings.OutputNamespace);
+            var classString = configObject.GetClassString(_settings.OutputNamespace, "DictionaryClass");
             var folder = Path.GetDirectoryName(path);
             if (folder == null)
             {

@@ -127,7 +127,7 @@ namespace LazyFramework.DX.Services.Athena.Models
             return valid;
         }
 
-        public string GetClassString(string ns)
+        public string GetClassString(string ns, string baseClass)
         {
             StringBuilder sb = new StringBuilder();
             try
@@ -137,7 +137,7 @@ namespace LazyFramework.DX.Services.Athena.Models
                 sb.AppendLine($"using System.ComponentModel;");
                 sb.AppendLine();
                 sb.AppendLine($"namespace {ns} {{");
-                sb.AppendLine($"\tpublic class {ClassName} : BaseConfig {{");
+                sb.AppendLine($"\tpublic class {ClassName} : {baseClass} {{");
                 //sb.AppendLine("\t// Houses the actual values of the config");
                 //sb.AppendLine($"\tprivate Dictionary<string, object> _config = new Dictionary<string, object>();");
                 //sb.AppendLine();

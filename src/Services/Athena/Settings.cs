@@ -92,7 +92,7 @@ namespace LazyFramework.DX.Services.Athena
             Label = "Path",
             Description = "The path to output the generated classes.",
             Key = AthenaSettingKeys.OutputPathSettingKey,
-            DefaultValue = "ConfigClasses",
+            DefaultValue = "Models",
             GetDisplayValue = val => val,
             IsDesignTime = true,
             RequiresPackageReload = false,
@@ -124,7 +124,11 @@ namespace LazyFramework.DX.Services.Athena
 
         public void Initialize(IWorkflowDesignApi api, SettingsCategory root)
         {
-            OutputNamespaceSetting.DefaultValue = api.ProjectPropertiesService.GetProjectName() + ".ConfigClasses";
+            var projectName = api.ProjectPropertiesService.GetProjectName();
+            if(char.IsDigit(projectName[0]))     
+                projectName = "_" + projectName;
+            
+            OutputNamespaceSetting.DefaultValue = projectName + ".ConfigClasses";
             var settingsApi = api.Settings;
             settingsApi.AddSection(root, this);
             settingsApi.AddSetting(this, ConfigFilePathSetting);

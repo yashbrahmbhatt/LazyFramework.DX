@@ -82,26 +82,34 @@ namespace LazyFramework.DX.Services.Nabu
             $"Version - The version of the project\r\n" +
             $"Type - The output type of this project",
             Key = NabuSettingsKeys.ProjectTemplateSettingKey,
-            DefaultValue = @"# {Name}\r\n" +
-                        @"Type: {Type}\r\n" +
-                        @"Version: {Version}\r\n" +
-                        @"Studio Version: {StudioVersion}\r\n" +
-                        @"Language: {Language}\r\n\r\n" +
-                        @"{Description}\r\n\r\n" +
-                        @"<hr />\r\n\r\n" +
-                        @"## Project Details\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Dependencies</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{Dependencies}\r\n\r\n" +
-                        @"</details>\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Entry Points</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{EntryPoints}\r\n\r\n" +
-                        @"</details>",
+            DefaultValue =
+@"# {Name}
+Type: {Type}
+Version: {Version}
+Studio Version: {StudioVersion}
+Language: {Language}
+
+{Description}
+
+<hr />
+
+## Project Details
+<details>
+    <summary>
+    <b>Dependencies</b>
+    </summary>
+
+{Dependencies}
+
+</details>
+<details>
+    <summary>
+    <b>Entry Points</b>
+    </summary>
+
+{EntryPoints}
+
+</details>",
             GetDisplayValue = val => val,
             IsDesignTime = true,
             RequiresPackageReload = true,
@@ -122,44 +130,62 @@ namespace LazyFramework.DX.Services.Nabu
                         $"Tests - A list of tests associated with this workflow\r\n" +
                         $"Outline - The mermaid diagram of the workflow (Beta)\r\n",
             Key = NabuSettingsKeys.WorkflowTemplateSettingKey,
-            DefaultValue = @"#{WorkflowName}\r\n" +
-                        @"Class: {Class}\r\n\r\n" +
-                        @"{Description}\r\n\r\n" +
-                        @"<hr />\r\n\r\n" +
-                        @"## Workflow Details\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Namespaces</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{Namespaces}\r\n\r\n" +
-                        @"</details>\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>References</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{References}\r\n\r\n" +
-                        @"</details>\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Arguments</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{Arguments}\r\n\r\n" +
-                        @"</details>\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Workflows Used</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{WorkflowsUsed}\r\n\r\n" +
-                        @"</details>\r\n" +
-                        @"<details>\r\n" +
-                        @"    <summary>\r\n" +
-                        @"    <b>Tests</b>\r\n" +
-                        @"    </summary>\r\n\r\n" +
-                        @"{Tests}\r\n\r\n" +
-                        @"</details>\r\n\r\n" +
-                        @"<hr />\r\n\r\n" +
-                        @"## Outline (Beta)\r\n\r\n" +
-                        @"{Outline}",
+            DefaultValue = 
+@"#{WorkflowName}
+Class: {Class}
+
+{Description}
+
+<hr />
+
+## Workflow Details
+<details>
+    <summary>
+    <b>Namespaces</b>
+    </summary>
+
+{Namespaces}
+
+</details>
+<details>
+    <summary>
+    <b>References</b>
+    </summary>
+
+{References}
+
+</details>
+<details>
+    <summary>
+    <b>Arguments</b>
+    </summary>
+
+{Arguments}
+
+</details>
+<details>
+    <summary>
+    <b>Workflows Used</b>
+    </summary>
+
+{WorkflowsUsed}
+
+</details>
+<details>
+    <summary>
+    <b>Tests</b>
+    </summary>
+
+{Tests}
+
+</details>
+
+<hr />
+
+## Outline (Beta)
+
+{Outline}"
+,
             GetDisplayValue = val => val,
             IsDesignTime = true,
             RequiresPackageReload = true,
@@ -192,7 +218,8 @@ namespace LazyFramework.DX.Services.Nabu
 
         public SingleValueEditorDescription<string> IgnoredDirectoriesSetting = new SingleValueEditorDescription<string>()
         {
-            DefaultValue = "Design\n.templates",
+            DefaultValue = @"Design
+            .templates",
             Description = "The list of directory names to ignore during file processing in .gitignore format.",
             GetDisplayValue = val => string.Join(", ", val),
             IsDesignTime = true,

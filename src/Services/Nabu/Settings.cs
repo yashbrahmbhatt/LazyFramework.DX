@@ -218,8 +218,9 @@ Class: {Class}
 
         public SingleValueEditorDescription<string> IgnoredDirectoriesSetting = new SingleValueEditorDescription<string>()
         {
-            DefaultValue = @"Design
-            .templates",
+            DefaultValue = 
+@"Design
+.templates",
             Description = "The list of directory names to ignore during file processing in .gitignore format.",
             GetDisplayValue = val => string.Join(", ", val),
             IsDesignTime = true,

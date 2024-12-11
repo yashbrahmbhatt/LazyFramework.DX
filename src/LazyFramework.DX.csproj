@@ -19,22 +19,6 @@
 		<RootNamespace>LazyFramework.DX</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <Compile Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
-	  <EmbeddedResource Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
-	  <None Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
-	  <Page Remove="Services\Nabu\Models\WorkflowEditorV2\**" />
-	</ItemGroup>
-
-
-
-	<ItemGroup>
-	  <None Remove="Icons\Hermes.jpg" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="Services\Nabu\Models\WorkflowEditor\Editor.cs" />
-	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<Reference Include="System.Activities" />
 		<Reference Include="System.Activities.Core.Presentation" />

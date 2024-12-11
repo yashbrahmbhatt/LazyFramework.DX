@@ -28,7 +28,6 @@ namespace LazyFramework.DX.Services.Heimdall
                 Log($"Directory not found: {directoryPath}", LogLevel.Error);
                 throw new DirectoryNotFoundException($"Directory not found: {directoryPath}");
             }
-            Log(string.Join("\n",_settings.FilesToIgnore), LogLevel.Error);
             _fileWatcher = new FileSystemWatcher(directoryPath)
             {
                 NotifyFilter = NotifyFilters.FileName |

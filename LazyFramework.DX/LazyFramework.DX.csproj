@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<TargetFrameworks>net6.0-windows;net7.0-windows;net8.0-windows;net461</TargetFrameworks>
@@ -38,10 +37,10 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Resource Include="Icons\Hermes_Contrast.jpg">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Resource>
 	  <Resource Include="Icons\Hermes.jpg">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Resource>
 	</ItemGroup>
 

@@ -18,9 +18,6 @@ namespace LazyFramework.DX.Models.Consumers
             _odin = odin ?? throw new Exception("Odin service doesn't exist.");
         }
 
-        public void Log(string message, LogLevel level = LogLevel.Info, string context = "LazyFramework")
-        {
-            _hermes.Log(message, _context, level); // Assuming Hermes has an async Log method
-        }
+
     }
 }

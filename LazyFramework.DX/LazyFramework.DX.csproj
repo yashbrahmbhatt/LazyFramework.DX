@@ -5,6 +5,7 @@
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Version>$([System.DateTime]::Now.ToString("yy.MM.dd.HHmmss"))</Version>
 		<FileVersion>1.0.0.0</FileVersion>
@@ -25,7 +26,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="EPPlus" Version="7.5.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Condition="'$(TargetFramework)' != 'net461'" Include="System.Activities.Metadata" Version="6.0.0-20231204.1">
 			<Aliases>SAM</Aliases>

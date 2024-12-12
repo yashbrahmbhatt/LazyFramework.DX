@@ -31,8 +31,10 @@ namespace LazyFramework.DX.Services.Athena.Models
 
         private Action<string, LogLevel> Log;
 
+        public ConfigObject()
+        {
 
-        [JsonConstructor]
+        }
         public ConfigObject(Action<string, LogLevel> log)
         {
             Log = log;

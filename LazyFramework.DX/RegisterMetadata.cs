@@ -19,62 +19,37 @@ using LazyFramework.DX.Services.Athena;
 using LazyFramework.DX.Services.Nabu;
 using LazyFramework.DX.Services.Heimdall;
 using System.Linq;
+using LazyFramework.DX.Services.Aether;
+using System.Reflection;
+using Newtonsoft.Json;
+using LazyFramework.DX.Services.Brahma;
 
 namespace LazyFramework
 {
     public class RegisterMetadata : IRegisterMetadata
     {
-        private static IServiceCollection _services;
         private static Hermes _hermes;
         private static Odin _odin;
         private static Athena _athena;
         private static Nabu _nabu;
         private static Heimdall _heimdall;
+        private static Aether _aether;
+        private static string _context = "LazyFramework";
+        private static Brahma _brahma;
 
         private void InitializeServices(IWorkflowDesignApi api)
         {
             try
             {
+
                 _hermes = new Hermes(api) ?? throw new Exception("Failed to initialize Hermes.");
                 _odin = new Odin(api, _hermes) ?? throw new Exception("Failed to initialize Odin.");
                 _athena = new Athena(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Athena.");
                 _nabu = new Nabu(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Nabu.");
                 _heimdall = new Heimdall(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Heimdall.");
+                _aether = new Aether(api, _hermes) ?? throw new Exception("Failed to initialize Aether.");
+                _brahma = new Brahma(api, _hermes, _aether) ?? throw new Exception("Failed to initialize Brahma.");
 
-                //_services = new ServiceCollection();
-                //_services.AddSingleton<IWorkflowDesignApi>(api);
-                //_services.AddSingleton<Hermes>(provider =>
-                //{
-                //    _hermes = new Hermes(api) ?? throw new Exception("Failed to initialize Hermes.");
-                //    return _hermes;
-                //});
-                //_services.AddSingleton<Odin>(provider =>
-                //{
-                //    _odin = new Odin(api, _hermes) ?? throw new Exception("Failed to initialize Odin.");
-                //    return _odin;
-                //});
-
-                //_services.AddSingleton<Heimdall>(provider =>
-                //{
-                //    _heimdall = new Heimdall(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Heimdall.");
-                //    return _heimdall;
-                //});
-
-                //_services.AddSingleton<Athena>(provider =>
-                //{
-                //    _athena = new Athena(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Athena.");
-                //    return _athena;
-                //});
-
-                //_services.AddSingleton<Nabu>(provider =>
-                //{
-                //    _nabu = new Nabu(api, _hermes, _odin) ?? throw new Exception("Failed to initialize Nabu.");
-                //    return _nabu;
-                //});
-                if (_hermes == null || _odin == null || _athena == null || _nabu == null || _heimdall == null)
-                {
-                    throw new Exception($"Failed to initialize services. Hermes: {_hermes == null}, Odin: {_odin == null}, Athena: {_athena == null}, Nabu: {_nabu == null}, Heimdall: {_heimdall == null}");
-                }
             }
             catch (Exception ex)
             {

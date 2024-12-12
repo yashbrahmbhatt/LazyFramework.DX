@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace LazyFramework.DX.Services.Hermes
 
     public class Hermes : BaseConsumer 
     {
-        private readonly Queue<Log> _logs = new Queue<Log>(2000);
+        private ConcurrentQueue<Log> _logs = new ConcurrentQueue<Log>();
         private Window _window;
         private Timer _debounceTimer = new Timer()
         {
@@ -58,20 +59,16 @@ namespace LazyFramework.DX.Services.Hermes
             _window.Show();
         }
 
-        public Queue<Log> GetLogs()
+        public ConcurrentQueue<Log> GetLogs()
         {
             return _logs;
         }
 
-        private readonly object _lock = new object();
         public void Log(string message, string context, LogLevel level = LogLevel.Info)
         {
             var log = new Log(DateTime.Now, level, message, context);
-            lock (_lock)
-            {
-            if (_logs.Count == 2000) _logs.Dequeue();
+
             _logs.Enqueue(log);
-            }
             if (_window == null) return;
 
             Application.Current.Dispatcher.Invoke(() =>
@@ -81,6 +78,7 @@ namespace LazyFramework.DX.Services.Hermes
                 TriggerDebouncedRefresh();
             });
         }
+        private object _lock = new object();
         private void TriggerDebouncedRefresh()
         {
             lock (_lock)
@@ -106,7 +104,7 @@ namespace LazyFramework.DX.Services.Hermes
 
         public void ClearLogs()
         {
-            _logs.Clear();
+            _logs = new ConcurrentQueue<Log>();
             if (_window == null) return;
             _window.RefreshDisplay();
         }

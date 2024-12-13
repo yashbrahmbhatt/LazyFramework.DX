@@ -1,114 +1,124 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
+using System.Net;
+using System;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Media;
-using LazyFramework.DX.Models.Consumers;
 using Newtonsoft.Json;
+using System.Timers;
 using UiPath.Studio.Activities.Api;
-using UiPath.Studio.Api.Theme;
-using Window = LazyFramework.DX.Services.Hermes.Window;
+using LazyFramework.DX.Models.Consumers;
+using Timer = System.Timers.Timer;
+using System.Linq;
+using System.Windows;
 
 namespace LazyFramework.DX.Services.Hermes
 {
-
-
-    public class Hermes : BaseConsumer 
+    public class Hermes : BaseConsumer
     {
         private ConcurrentQueue<Log> _logs = new ConcurrentQueue<Log>();
-        private Window _window;
         private Timer _debounceTimer = new Timer()
         {
             Interval = 500,
             AutoReset = false,
         };
         private bool _refreshPending = false;
+        private ConcurrentBag<WebSocket> _clients = new ConcurrentBag<WebSocket>();  // To hold WebSocket clients
+
+        private HttpListener _listener = new HttpListener();
+        private string _baseUrl = "ws://localhost:7999/";
+        private string _context = "Hermes"; 
 
         public Hermes(IWorkflowDesignApi api) : base(api)
         {
-            InitializeWindow();
             _debounceTimer.Elapsed += OnDebounceElapsed;
 
-
-            
             Log("Hermes initialized.", "Hermes", LogLevel.Info);
         }
-        public override string ToString()
+
+        public void AddClient(WebSocket socket)
         {
-            return JsonConvert.SerializeObject(_logs);
-        }
-        public void InitializeWindow()
-        {
-            var theme = _api.Theme.GetThemeType();
-            if (_window == null) _window = new Window(this, theme);
-            //_window.Closed += (sender, args) => _window = null;
-            Log($"Hermes window initialized", "Hermes", LogLevel.Info);
+            _clients.Add(socket);
+            Log("WebSocket client connected.", _context);
         }
 
-        public void ShowWindow()
+        private async Task BroadcastToClients(string message)
         {
-            if (_window == null) throw new InvalidOperationException("Hermes window is not initialized.");
-            _window.Show();
-        }
+            try
+            {
 
-        public ConcurrentQueue<Log> GetLogs()
+                List<WebSocket> clientsToRemove = new List<WebSocket>();
+                List<WebSocket> clientsCopy;
+                lock (_clients)
+                {
+                    clientsCopy = new List<WebSocket>(_clients);
+                }
+
+                foreach (var client in _clients)
+                {
+                    if (client.State == WebSocketState.Open)
+                    {
+                        var buffer = Encoding.UTF8.GetBytes(message);
+                        await client.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                    else
+                    {
+                        clientsToRemove.Add(client);
+                    }
+                }
+
+                lock (_clients)
+                {
+
+                    // Clean up closed clients
+                    foreach (var client in clientsToRemove)
+                    {
+                        RemoveClient(client);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(JsonConvert.SerializeObject(ex, Formatting.Indented));
+            }
+            
+        }
+        public void RemoveClient(WebSocket socket)
         {
-            return _logs;
+            _clients = new ConcurrentBag<WebSocket>(_clients.Where(s => s != socket));
+            Log("WebSocket client disconnected.", _context);
         }
 
         public void Log(string message, string context, LogLevel level = LogLevel.Info)
         {
             var log = new Log(DateTime.Now, level, message, context);
-
             _logs.Enqueue(log);
-            if (_window == null) return;
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-
-            _window.AddContext(context);
-                TriggerDebouncedRefresh();
-            });
+            TriggerDebouncedRefresh();
         }
-        private object _lock = new object();
+
         private void TriggerDebouncedRefresh()
         {
-            lock (_lock)
-            {
-                if (_refreshPending) return;
-                _refreshPending = true;
-            }
-
+            if (_refreshPending) return;
+            _refreshPending = true;
             _debounceTimer.Stop();
             _debounceTimer.Start();
         }
-        private void OnDebounceElapsed(object? sender, ElapsedEventArgs e)
+
+        private async void OnDebounceElapsed(object? sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            lock (_clients)
             {
-                lock (_lock)
-                {
-                    _refreshPending = false;
-                }
-                _window.RefreshDisplay();
-            });
-        }
+                _refreshPending = false;
+            }
 
-        public void ClearLogs()
-        {
-            _logs = new ConcurrentQueue<Log>();
-            if (_window == null) return;
-            _window.RefreshDisplay();
-        }
+            // Prepare message to send to clients
+            var message = JsonConvert.SerializeObject(_logs);
 
+            // Send logs to all connected clients
+            await BroadcastToClients(message);
+        }
 
     }
 }

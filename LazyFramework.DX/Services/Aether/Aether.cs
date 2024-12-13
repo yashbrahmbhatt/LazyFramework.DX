@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,52 +60,119 @@ namespace LazyFramework.DX.Services.Aether
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
                     response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                     response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-                    // Log request details
-                    Log($"Received request: {request.HttpMethod} {request.Url}");
-                    var relativeUrl = new Uri(_baseUrl).MakeRelativeUri(request.Url).ToString();
-                    var message = new object();
-                    if (_handlers.ContainsKey(relativeUrl))
+                    if (request.IsWebSocketRequest)
                     {
-                        try
-                        {
-                            var handler = _handlers[relativeUrl];
-                            message = handler.Invoke(request) ?? throw new Exception("Handler returned null.");
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Log($"Error handling request: {ex.Message}", LogLevel.Error);
-                            message = new {
-                                Message = $"Internal server error: {ex.Message}\n{ex.StackTrace}"
-                            };
-                            response.StatusCode = 500;
-                            
-                        }
+                        //MessageBox.Show("Got a websocket request.");
+                        WebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
+                        var socket = webSocketContext.WebSocket;
+                        _hermes.AddClient(socket);
+                        //MessageBox.Show("Added client.");
+                        await HandleWebSocketCommunication(socket);
                     }
                     else
                     {
-                        message = new
-                        {
-                            Message = "No endpoint handler has been registered for " + relativeUrl
-                        };
-                        response.StatusCode = 404;
-                    }
-                    var json = JsonConvert.SerializeObject(message, Formatting.Indented, new JsonSerializerSettings
-                    {
-                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                    });
-                    Log($"Sending response: {json}");
-                    var buffer = Encoding.UTF8.GetBytes(json);
-                    response.ContentType = "application/json";
-                    response.OutputStream.Write(buffer, 0, buffer.Length);
-                    response.OutputStream.Close();
 
+                        // Log request details
+                        Log($"Received request: {request.HttpMethod} {request.Url}");
+                        var relativeUrl = new Uri(_baseUrl).MakeRelativeUri(request.Url).ToString();
+                        var message = new object();
+                        if (_handlers.ContainsKey(relativeUrl))
+                        {
+                            try
+                            {
+                                var handler = _handlers[relativeUrl];
+                                message = handler.Invoke(request) ?? throw new Exception("Handler returned null.");
+
+                            }
+                            catch (Exception ex)
+                            {
+                                Log($"Error handling request: {ex.Message}", LogLevel.Error);
+                                message = new
+                                {
+                                    Message = $"Internal server error: {ex.Message}\n{ex.StackTrace}"
+                                };
+                                response.StatusCode = 500;
+
+                            }
+                        }
+                        else
+                        {
+                            message = new
+                            {
+                                Message = "No endpoint handler has been registered for " + relativeUrl
+                            };
+                            response.StatusCode = 404;
+                        }
+                        var json = JsonConvert.SerializeObject(message, Formatting.Indented, new JsonSerializerSettings
+                        {
+                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                        });
+                        Log($"Sending response: {json}");
+                        var buffer = Encoding.UTF8.GetBytes(json);
+                        response.ContentType = "application/json";
+                        response.OutputStream.Write(buffer, 0, buffer.Length);
+                        response.OutputStream.Close();
+
+                    }
 
                 }
             });
         }
+        private async Task HandleWebSocketCommunication(WebSocket webSocket)
+        {
+            try
+{
+    var buffer = new byte[1024];
+    WebSocketReceiveResult result;
 
+    while (webSocket.State == WebSocketState.Open)
+    {
+        try
+        {
+            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                Log("WebSocket client disconnected.");
+                _hermes.RemoveClient(webSocket);
+                break; // Exit the loop since the client disconnected
+            }
+
+            // Handle other message types, such as text or binary
+            if (result.MessageType == WebSocketMessageType.Text)
+            {
+                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                Log($"Received message: {message}");
+                // Process the received message
+            }
+        }
+        catch (WebSocketException wsEx)
+        {
+            Log($"WebSocketException: {wsEx.Message}");
+            break; // Exit the loop on WebSocket exceptions
+        }
+        catch (Exception ex)
+        {
+            Log($"Exception in WebSocket receive loop: {ex.Message}");
+            break; // Exit the loop on other exceptions
+        }
+    }
+}
+catch (Exception ex)
+{
+    Log($"Outer exception: {JsonConvert.SerializeObject(ex, Formatting.Indented)}");
+}
+finally
+{
+    if (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseReceived)
+    {
+        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Cleaning up", CancellationToken.None);
+        Log("WebSocket closed in finally block.");
+    }
+    _hermes.RemoveClient(webSocket); // Ensure cleanup
+}
+        }
         public async Task Register(string endpoint, Func<HttpListenerRequest, object> handler)
         {
             Log($"Registering handler for endpoint {endpoint}.");

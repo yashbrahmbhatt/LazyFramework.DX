@@ -67,7 +67,6 @@ namespace LazyFramework.DX.Services.Hermes
             {
                 if (_hermes == null) return null;
                 _hermes.Log("Running open window wizard", "Hermes.Wizards.OpenWindow", LogLevel.Debug);
-                _hermes.ShowWindow();
             }
             catch (Exception ex)
             {

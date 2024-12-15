@@ -11,5 +11,6 @@ namespace LazyFramework.DX.Services.Aether
     public interface IAetherImplementation
     {
         new Task Register(string endpoint, Func<HttpListenerRequest, object> handler);
+
     }
 }

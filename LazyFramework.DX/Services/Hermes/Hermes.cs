@@ -94,7 +94,6 @@ namespace LazyFramework.DX.Services.Hermes
         public void Log(string message, string context, LogLevel level = LogLevel.Info)
         {
             var log = new Log(DateTime.Now, level, message, context);
-            if (_logs.Count == 2000) _logs.TryDequeue(out var result);
             _logs.Enqueue(log);
             TriggerDebouncedRefresh();
         }

@@ -128,7 +128,7 @@ namespace LazyFramework.DX.Services.Brahma.Models
                             Type = a.Type,
                         };
                     }),
-                        Outline = editor.GetOutline("", "").Result,
+                        Outline = editor.Outline,
                         Description = editor.Description,
                         Expressions = editor.Expressions.Select(e =>
                     {

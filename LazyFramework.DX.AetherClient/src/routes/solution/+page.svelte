@@ -9,6 +9,7 @@
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import type { Snippet } from 'svelte';
 	import { Solution, type SolutionTreeNode } from './Solution';
+
 	import {
 		BookOpenText,
 		Bot,
@@ -25,66 +26,9 @@
 		TestTubeDiagonal,
 		WorkflowIcon
 	} from 'lucide-svelte';
+	import XamlViewer from './XamlViewer.svelte';
 	let { data }: { data: PageData } = $props();
 
-	function parseWorkflows() {
-		let files = Object.keys(data.Files);
-		let workflows = files.filter((file) => file.endsWith('.xaml'));
-		var parser = new DOMParser();
-		var xamls = workflows.map((xaml) =>
-			parser.parseFromString(data.Files[xaml], 'application/xml')
-		);
-		xamls.forEach((xaml, i) => {
-			var activities = getFilteredDescendantElements(
-				xaml,
-				(element) => element.attributes.getNamedItem('DisplayName') !== null
-			);
-			var values = getFilteredDescendantElements(
-				xaml,
-				(element) => element.nodeName === 'CSharpValue' || element.nodeName === 'VisualBasicValue'
-			);
-			var references = getFilteredDescendantElements(
-				xaml,
-				(element) =>
-					element.nodeName === 'CSharpReference' || element.nodeName === 'VisualBasicReference'
-			);
-			var properties = getFilteredDescendantElements(
-				xaml,
-				(element) => element.nodeName === 'x:Property'
-			);
-		});
-		return xamls;
-	}
-	parseWorkflows();
-	/**
-	 * Recursively retrieves all element nodes that are descendants of the given node,
-	 * filtered by the provided callback function.
-	 *
-	 * @param node - The starting node to search for descendants.
-	 * @param filterCallback - A callback function to determine which elements to include.
-	 *                          It receives an element node and returns `true` to include the node or `false` to exclude it.
-	 * @returns An array of filtered element nodes.
-	 */
-	function getFilteredDescendantElements(
-		node: Node,
-		filterCallback: (element: Element) => boolean
-	): { element: Element }[] {
-		const result: { element: Element }[] = [];
-
-		function traverse(currentNode: Node) {
-			if (currentNode.nodeType === Node.ELEMENT_NODE) {
-				const element = currentNode as Element;
-				if (filterCallback(element)) {
-					result.push({ element });
-				}
-			}
-			currentNode.childNodes.forEach((child) => traverse(child));
-		}
-
-		traverse(node);
-
-		return result;
-	}
 	let solution = new Solution(data.Files);
 	let tree = $state([solution.convertSolutionToTree()]);
 	let selected = $state(writable<SolutionTreeNode>());
@@ -103,8 +47,74 @@
 		code: CodeSnippet
 	} as Record<string, Snippet>;
 
-	$inspect('page', $selected);
+	$inspect('page', $selected.type);
 </script>
+
+<div class="flex h-[95vh] w-full flex-col place-content-center space-y-4">
+	<Resizable.PaneGroup direction="horizontal" class="w-full rounded-lg border">
+		<Resizable.Pane defaultSize={20}>
+			<div class="flex w-full flex-col justify-center p-2">
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<FileTree bind:tree level={0} {icons} bind:selected />
+				</ScrollArea>
+			</div>
+		</Resizable.Pane>
+		<Resizable.Handle />
+		<Resizable.Pane defaultSize={80}>
+			{#if $selected.type === 'markdown'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+                        {$selected.value}
+                    </pre>
+				</ScrollArea>
+			{:else if $selected.type === 'workflow'}
+				<XamlViewer xaml={$selected.value} />
+			{:else if $selected.type === 'code'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else if $selected.type === 'file'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else if $selected.type === 'project'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else if $selected.type === 'solution'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else if $selected.type === 'entry'}
+				<XamlViewer xaml={$selected.value} />
+			{:else if $selected.type === 'json'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else if $selected.type === 'test'}
+				<XamlViewer xaml={$selected.value} />
+			{:else if $selected.type === 'folder'}
+				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
+					<pre>
+						{$selected.value}
+					</pre>
+				</ScrollArea>
+			{:else}
+				Hello World
+			{/if}
+		</Resizable.Pane>
+	</Resizable.PaneGroup>
+</div>
 
 {#snippet CodeSnippet()}
 	<CodeIcon class="min-h-4 min-w-4" />
@@ -142,25 +152,3 @@
 {#snippet TestFile()}
 	<TestTubeDiagonal class="min-h-4 min-w-4" />
 {/snippet}
-
-<div class="flex h-[95vh] w-full flex-col place-content-center space-y-4">
-	<Resizable.PaneGroup direction="horizontal" class="w-full rounded-lg border">
-		<Resizable.Pane defaultSize={20}>
-			<div class="flex w-full flex-col justify-center p-2">
-				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
-					<FileTree bind:tree level={0} {icons} bind:selected />
-				</ScrollArea>
-			</div>
-		</Resizable.Pane>
-		<Resizable.Handle />
-		<Resizable.Pane defaultSize={80}>
-			{#if $selected.type === 'markdown'}
-				<ScrollArea class="h-[84vh]" orientation="vertical" scrollbarYClasses="w-1">
-					<pre>
-                        {$selected.value}
-                    </pre>
-				</ScrollArea>
-			{/if}
-		</Resizable.Pane>
-	</Resizable.PaneGroup>
-</div>

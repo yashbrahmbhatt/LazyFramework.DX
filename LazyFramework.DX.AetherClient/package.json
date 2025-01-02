@@ -24,14 +24,14 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@types/node": "^22.10.2",
 		"autoprefixer": "^10.4.20",
-		"bits-ui": "^0.21.16",
+		"bits-ui": "^1.0.0-next.74",
 		"clsx": "^2.1.1",
 		"eslint": "^9.7.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
 		"globals": "^15.0.0",
 		"lucide-svelte": "^0.468.0",
-		"paneforge": "^0.0.6",
+		"paneforge": "^1.0.0-next.2",
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.5",
@@ -40,19 +40,23 @@
 		"tailwind-merge": "^2.5.5",
 		"tailwind-variants": "^0.3.0",
 		"tailwindcss": "^3.4.9",
+		"tailwindcss-animate": "^1.0.7",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.0.0",
-		"vaul-svelte": "^0.3.2",
+		"vaul-svelte": "^1.0.0-next.3",
 		"vite": "^6.0.0",
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/typography": "^0.5.15",
+		"@tanstack/table-core": "^8.20.5",
 		"elkjs": "^0.9.3",
 		"fast-xml-parser": "^4.5.0",
 		"marked": "^15.0.3",
 		"mermaid": "^11.4.1",
-		"mode-watcher": "^0.5.0"
+		"mode-watcher": "^0.5.0",
+		"svelvet": "^10.0.2",
+		"uuid": "^11.0.3"
 	}
 }
